@@ -1,0 +1,19 @@
+HU-005: Notificación al estudiante para corrección de documentación.
+Como estudiante, 
+Quiero recibir una notificación automática si la documentación que envié es incorrecta, 
+Para poder corregir y enviar mi solicitud sin tener que iniciar el trámite desde cero.
+
+Flujo:
+
+Se activa tras el fallo de la HU-004 (verificación de formato).
+El agente redacta un correo electrónico predefinido.
+El correo especifica el motivo del rechazo (ej: "Formato de archivo incorrecto").
+El correo se envía a la dirección proporcionada por el estudiante en el formulario.
+
+Criterios de Aceptación:
+
+Escenario 1 – Envío de correo de corrección
+
+Dado que la validación automática de documentos ha fallado, 
+Cuando el flujo se desvía por la rama de "error en documento", 
+Entonces se debe enviar un correo electrónico al estudiante solicitando la corrección.

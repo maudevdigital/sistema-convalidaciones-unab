@@ -1,0 +1,219 @@
+
+El siguiente documento tiene como objetivo que los equipos apliquen los 5 eventos principales de Scrum (sprint, Planning, Daily, Review, Retrospective, y Refinement) de forma adaptada a su contexto: desarrollo de flujos AI en n8n, trabajo en parejas (developer–tester), y evidencias verificables.
+Integra guías y formatos para estudiantes de Práctica I UNAB; que trabajan con flujos de AI en n8n. Este documento provee plantillas listas para usar en Taiga: Retrospectiva, Refinamiento, Pruebas Unitarias e Integración, y recomendaciones de evidencia.
+Recordar que los sprint duran 3 semanas y que es el equipo el que organiza qué hacer semanalmente. Inicio del sprint 1: 13 de octubre al 02 de noviembre, entrega de video el 22 de noviembre. Revisión de incremento 29 de noviembre
+Sprint 2 Inicio: 03 de noviembre al 23 de noviembre. Revisiones por definir Sprint 3 Inicio: 24 de noviembre al 13 de diciembre. Revisiones por definir
+Uso de Taiga: recomendaciones
+-	Crear una Wiki del Sprint (Sprint 1) y subir allí los documentos PDF finalizados.
+-	En cada HU, adjuntar evidencia: capturas de n8n, JSON exportado del flujo, registros de pruebas.
+-	Vincular la HU con la Tarea correspondiente y marcar estados con claridad (Nueva, En curso, En revisión, Hecha).
+-	Subir los informes solicitados. Recuerde que el compromiso es trabajar 10 horas semanales. Que muchos grupos no han cumplido. Debe cumplir el total de horas de la práctica.
+1.	Evento Sprint Planning
+Objetivos del evento:
+Definir el objetivo del Sprint 1. Entregar un flujo funcional integrado de todas las historias que ingresarán a este sprint por tener la mayor priorización. Debe ingresar al menos 3 HU.
+•	Asignar a menos una HU por developer y vincular un tester (PO o SM).
+•	Elaborar el Sprint Backlog con tareas concretas por HU y responsables. Debe usar Taiga para representar el sprint backlog
+•	Aplicar Planning Poker para estimar el esfuerzo de la HU. Estudiar e concepto de HU Pivote para mejorar la estimación del equipo
+•	Definir el documento Do, que incluya al menos lo siguiente:
+ 
+
+1.	Objetivo del sprint
+2.	Integración de los criterios de aceptación de todas las historias
+3.	Casos de prueba de los criterios de aceptación
+4.	Calidad técnica mínima del fujo: errores controlados, logs, seguridad de credenciales, rendimiento, datos anonimizados, nomenclatura de nodos (AUTH_, API_, MAP_, CTRL_, OUT_).
+5.	Video de aceptación al PO externo
+6.	Integración del flujo del incremento en JSON y git
+Recomendaciones:
+•	Cada HU debe estar completa y ejecutable, aunque repita parte del flujo de otro integrante.
+•	Documentar las tareas derivadas en formato tabla:
+o	ID HU, descripción, tareas, responsable, estimación, estado inicial, todo esto en taiga
+•	Utilizar una herramienta de estimación:
+🔗 Planning Poker Online – Scrumpoker-online.org
+(recomienda usar valores Fibonacci 1–2–3–5–8–13 y explicar por qué eligieron la estimación final).
+•	Cada HU debe crear, ejecutar y documentar al menos 3 casos de prueba por cada criterio de aceptación (CA)
+•	Al terminar de desarrollar y probar las HU, es esperable que tengan código o funcionalidades repetidas, por lo tanto en la fase de integración de las HU al flujo final del sprint o incremento, debe quedar definido en el entorno de trabajo del developer líder. Este flujo debe subirse a git y probarse con casos de pruebas de integración.
+•	Antes del evento de cierre del sprint o retrospectiva, debe hacerse el refinamiento, después de ello debe subirse el flujo integrado o incremento al git del equipo y importarse el flujo integrado y probado en todos los entornos de programación de los developers y tester
+Informe post-Planning (entregable):
+1.	Nombre del equipo, roles y HU asignadas. Definición del Lider de developer
+2.	Objetivo del sprint.
+3.	Sprint Backlog con tareas por HU.
+4.	Captura o registro del Planning Poker.
+5.	Supuestos o dudas no resueltas para el PO.
+6.	Documentación de cada flujo n8n por HU asignada
+ 
+
+7.	Registros de pruebas unitarias por cada CA de cada HU
+8.	Criterios de integración del flujo o incremento
+9.	Pruebas de integración del flujo
+
+
+2.	Evento Daily Scrum
+Objetivos del evento:
+El equipo de desarrollo inspeccione el progreso hacia el objetivo del Sprint y adapte el plan (Sprint Backlog) para las próximas 24–48 horas, identificando y gestionando impedimentos. No es un reporte al SM/PO; es principalmente para gestionar el proyecto y ayudar al control de los Developers.
+En concreto, la Daily sirve para:
+1.	Inspeccionar: ¿Cómo vamos respecto al Objetivo del Sprint?
+2.	Adaptar: ¿Qué cambiaremos hoy/mañana en el plan de trabajo (tareas, prioridades, pares)?
+3.	Desbloquear: ¿Qué impedimentos existen y quién los tomará?
+4.	Actualizar: tablero/taiga, tiempos, estado de HU, y compromisos inmediatos.
+Se solicita:
+Se realizará cada dos días (no diario). Deben ser por el mismo medio (presencial, online.. etc) y en la misma hora Debe durar máximo 15 minutos y registrar/hablar brevemente:
+o	Qué hice desde el último Daily.
+o	Qué haré hasta el próximo.
+o	Qué impedimentos encontré.
+El Scrum Master registra y sube capturas o minutas breves.
+Cada Developer actualizan taiga y planificación de tareas del sprint backlog Al final del Sprint se entregará un resumen de Daily
+ 
+3.	Evento Sprint Review
+Objetivos del evento:
+Inspeccionar el incremento entregado (HU integradas) funcionando y recoger feedback del PO y adaptar el Product Backlog (qué sigue / qué cambiar)
+1.	Video de 10 minutos: con diapositiva inicial. Propuesta de contenidos
+o	0:00 Presentación del equipo
+o	0:40 Objetivo del sprint
+o	1:10 Demo Criterios de Aceptación (CA)→Prueba (mapa CA↔demo) para todas las HU
+o	6:00 Muestra el flujo integrado del sprint: Incremento
+o	7:30 Supuestos y preguntas para el PO
+o	9:00 Lecciones y próximos pasos
+2.	Informe de a Review
+
+Matriz Casos de prueba. Mostrar al menos un caso negativo (No Pass)
+
+HU HU-01
+HU-01	CA (Given/When/Then)	Dónde se ve en el video	Resultado
+	AC1: Explicación	01:35–02:10	Pass
+	AC2: explicación	02:11–02:40	Pass
+
+1.	Necesidades para el próximo sprint, o para continuar con este sprint, para antes de entregar
+o	Dato/Regla a confirmar
+o	Alternativa A/B propuesta por el equipo.
+o	Plazo deseado de respuesta e impacto si no se decide.
+2.	Supuestos del sprint actual
+o	Supuesto → Impacto → Evidencia de por qué se asumió.
+ 
+
+A.	Clarificando los requisitos. Para cada HU debe agregar y/o revisar los siguientes anexos
+
+1)	Backlog de Preguntas al PO que explican el supuesto (lea el anexo E)
+
+ID Prior.  HU	Pregunta	Contexto (qué probamos) Propuesta del equipo	Impacto	Estado
+
+Q-03	Alta	HU-02	¿Formato definitivo de fecha?	API X devuelve YYYY-MM-DD	Usar ISO 8601	Bloquea validación	Pendiente
+
+Regla: cada pregunta debe traer una propuesta; si no, no se publica.
+
+2)	“Ficha de HU” (1 página por HU, estándar)
+
+•	Objetivo de la HU (1 frase).
+•	CA (≥2) en Given/When/Then.
+•	Entradas/Salidas esperadas (JSON breve).
+•	Errores esperados & manejo.
+•	Datos de prueba (válido/inválido/borde).
+o	Evidencia (captura/log/etc).
+
+3)	Mocks / Colección de pruebas
+
+•	Link a Postman/Insomnia o a mocks usados; dataset sintético.
+
+B.	Guía rápida para escribir CA (pegar en Taiga en Wiki): 5 reglas simples
+
+1.	Un comportamiento por CA.
+2.	Medible y observable (qué devuelve/qué cambia).
+3.	Incluye un CA negativo (error o dato inválido).
+4.	Datos concretos (valores reales, no “X/Y”).
+5.	Tiempo/umbral cuando aplique (p. ej., ≤ 15 s).
+ 
+
+Plantilla ejemplo de plantilla
+
+•	Given un payload con {email: válido}
+•	When se ejecuta el nodo API_EnviarCorreo
+•	Then el servicio responde 200 y se registra log “correo_enviado:true”
+•	And ante email inválido devuelve 400 y log de validación.
+
+C.	Definition of Ready (DoR) ligero para el refinamiento. Esto desbe hacerlo el tester por HU asignada Antes de entrar una HU al sprint:
+•	  Objetivo claro en 1 frase.
+•	  ≥2 AC en Given/When/Then.
+•	  Entradas/Salidas definidas (campo, tipo, ejemplo).
+•	  Manejo de errores mínimo descrito.
+•	  Datos de prueba listos.
+•	  Dependencias/impacto en flujo integrado identificadas.
+•	  Estimada (Planning Poker)
+
+D.	Rutina de comunicación (enseñar a “preguntar bien”. Pegar en Taiga). Anexo para explicar como desarrollar 1), buenas preguntas de los requisitoa Formato de comentario en Taiga (obligatorio):
+•	Contexto: qué HU/tarea, qué intenté, qué ocurrió.
+•	Evidencia: captura/log/caso.
+•	Hipótesis: qué creo que pasa.
+•	Propuesta: A) 	B) 	.
+•	Etiqueta: #blocking / #data / #ux / #api.
+ 
+4.	Evento Retrospectiva (Sprint Retrospective)
+Objetivos del evento:
+Inspeccionar cómo trabajó el equipo (personas, procesos, herramientas, comunicación),
+Definir mejoras concretas (experimentos/acciones) para el siguiente sprint.
+Responsable: Scrum Master. Duración sugerida de la reunión: 30–40 minutos. Subir el acta a la Wiki del Sprint.
+
+Sección	Contenido esperado	Ejemplo / Nota
+Datos generales	Equipo, Sprint, Fecha, Asistentes.	Equipo A, Sprint 1, 10/10/2025, 5 asistentes.
+Lo que salió bien	3–5 fortalezas del Sprint.	Comunicación por Discord, HU entregadas a tiempo.
+Lo que podemos mejorar	3–5 puntos de mejora priorizados.	Estimación conservadora; falta de preguntas al PO.
+Acciones de mejora	Acciones SMART con responsable y fecha.	Estandarizar nombres de nodos n8n (Resp: Ana, 14/10).
+Riesgos y bloqueos	Riesgos detectados y mitigaciones.	Dependencia de API externa; crear mock local.
+Compromisos para Sprint 2	2–3 compromisos concretos.	Hacer Daily cada 2 días con minuta breve.
+ 
+
+5.	Evento Refinamiento (Backlog Refinement / Grooming)
+Objetivos del evento:
+Elevar la calidad de los ítems del backlog para que estén READY al entrar al próximo sprint Estos objetivos están definidos en el DoD, y deben ser caros, estimados y medibles (Casos de prueba)
+Responsable: Product Owner (coordina), SM facilita. Objetivo: preparar HU candidatas para el próximo sprint.
+
+HU	Checklist de preparación	Estimación / Dependencias	Notas / Supuestos para PO
+HU-05 Notificar al usuario por correo	-	Título claro y objetivo de negocio definido.
+-	Criterios de aceptación (Given/When/Then) específicos.
+-	Datos de entrada y salida esperados del flujo n8n.
+-	Reglas de negocio y manejo de errores.
+-	Definición de done (DoD) y evidencia requerida.
+-	Riesgos identificados (API externa, credenciales, tiempos de ejecución).
+-	Mock/ambiente de prueba disponible para recursos externos.
+-	Impacto en el flujo integrado (puntos de integración).	5 puntos (Fibonacci). Depende de HU-03 (generar token).	¿Qué plantilla de correo usará el PO? ¿Idiomas requeridos?
+Recomendaciones para el Refinamiento:
+-	Mantener HU pequeñas y con un único objetivo práctico (evitar mega-flujos).
+-	Unificar nomenclatura de nodos en n8n (prefijos por funcionalidad: AUTH_, API_, MAP_...).
+-	Documentar errores esperados y tiempo máximo de ejecución por HU.
+-	Si una HU reutiliza pasos de otra, indicar explícitamente qué parte se replica y por qué.
+-	Preparar datos de prueba representativos, incluyendo casos límite.
+ 
+
+6.	Anexos del informe
+3)	Plantilla de Pruebas Unitarias por HU
+Responsable: Tester asignado (PO o SM). Adjuntar resultados como comentario en la HU de Taiga.
+
+HU	Caso de prueba	Entrada	Resultado esperado	Resultado obtenido	Estado (Pass/Fail)	Evidencia (link/captura)
+HU-01	Entrada válida	payload JSON con campos X,Y	Respuesta 200 con campo Z	200 con Z correcto	Pass	Captura_01.png
+HU-01	Campo ausente	payload sin X	Error manejado y log	Error 400 y log en n8n	Pass	Captura_02.png
+HU-01	Timeout externo	simular API lenta	Reintento y alerta	Reintento x3, alerta Slack	Fail	Captura_03.png
+Notas de pruebas unitarias:
+-	Definir al menos 3 casos por HU (válido, inválido, borde/timeout).
+-	Registrar versión del flujo n8n probada y las credenciales/entorno empleados.
+-	Guardar export del flujo (.json) con nombre estándar: HU-XX_v1.json.
+ 
+
+4)	Plan de Pruebas de Integración (Flujo Integrado)
+Responsable: Developer Líder + Tester (PO/SM). Subir a la Wiki del Sprint y vincular a cada HU.
+
+ID	Escenario	Precondiciones	Pasos	Resultado esperado	Evidencia
+INT-01	Flujo
+HU1→HU2→HU3
+con datos válidos	n8n listo, credenciales configuradas	Disparar HU1 con payload estándar	Ejecución completa sin errores	Video o capturas
+INT-02	Falla en HU2 (API externa)	Mock activo para API	Simular error 500 en HU2	HU3 no dispara; registro de error y alerta	Logs + captura
+INT-03	Datos límite	Dataset con campos extremos	Ejecutar con valores máximos/mínimos	Validaciones correctas; tiempos en rango	Reporte tiempos
+Evidencia mínima del flujo integrado:
+-	Capturas del flujo final en n8n (diagrama y nodos clave).
+-	Export del flujo integrado (.json) y hash o fecha de versión.
+-	Logs de ejecución (OK y con fallos simulados).
+-	Video corto de la ejecución end-to-end (puede reutilizarse para la Review).
+ 
+
+5)	Nomenclatura y consistencia de artefactos
+-	HU y tareas: HU-XX, T-XX_HU-XX.
+-	Evidencia: HU-XX_TestCase-YY.png, INT-XX_Log.txt, FlujoIntegrado_v1.json.
+-	Video: Review_Sprint1_EquipoX.mp4.
+-	Ubicación en Taiga: HU → Adjuntos; Wiki Sprint → Actas e informes; Tareas → progreso.

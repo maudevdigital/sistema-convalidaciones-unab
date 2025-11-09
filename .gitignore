@@ -1,0 +1,69 @@
+# n8n data (NO versionar datos sensibles)
+n8n/database.sqlite*
+n8n/*.log
+n8n/crash.journal
+n8n/config
+
+# Binary data
+n8n/binaryData/*
+
+# Keep structure
+!n8n/binaryData/.gitkeep
+!n8n/nodes/.gitkeep
+
+# Credentials y configuración local
+**/CONFIG.local.md
+**/.env
+**/.env.local
+**/credentials.json
+**/service-account.json
+
+# Backups
+*.backup
+*.bak
+*.old
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# Temp files
+*.tmp
+*.temp
+~*
+.cache/
+
+# Node modules (si se usan custom nodes)
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test outputs
+test-results/
+coverage/
+
+# Personal notes (añadir al final de nombre de archivo)
+*.personal.md
+*.notes.txt
