@@ -6,7 +6,7 @@
       "id": "trigger-webhook-hu004",
       "name": "Webhook-HU004",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
+      "typeVersion": 1.1,
       "position": [250, 300],
       "webhookId": "hu005-notificacion-correccion"
     },
@@ -70,13 +70,10 @@
       "id": "email-correccion",
       "name": "Email-Correccion",
       "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [1250, 200],
       "credentials": {
-        "smtp": {
-          "id": "smtp-ethereal-hu005",
-          "name": "SMTP Ethereal HU-005"
-        }
+        "smtp": "={{$credentials.smtp}}"
       },
       "retryOnFail": true,
       "maxTries": 3,
@@ -95,7 +92,7 @@
     {
       "parameters": {
         "operation": "append",
-        "sheetName": "Logs",
+        "sheetName": "={{\"Logs\"}}",
         "columns": {
           "mappings": [
             {
@@ -149,15 +146,13 @@
       "id": "googlesheets-log",
       "name": "GoogleSheets-Log",
       "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 2,
+      "typeVersion": 4,
       "position": [1650, 200],
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "google-sheets-convalidaciones",
-          "name": "Google Sheets - Convalidaciones"
-        }
+        "googleSheetsOAuth2Api": "={{$credentials.googleSheetsOAuth2Api}}"
       },
-      "continueOnFail": true
+      "continueOnFail": true,
+      "disabled": true
     },
     {
       "parameters": {
