@@ -1,0 +1,199 @@
+{
+  "name": "HU-004 Verificación Formato Documento",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/hu-004-verificacion",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "91e099b0-ea60-4fe7-9f81-16b3c0af5f97",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        160
+      ],
+      "webhookId": "hu-004-verificacion"
+    },
+    {
+      "parameters": {
+        "jsCode": "// EXTRACTOR OPTIMIZADO PARA FORM-DATA (Webhook)\n\nconst item = $input.item;\n\nconsole.log('=== INICIANDO EXTRACCIÓN ===');\n\n// Verificar si hay datos binarios\nif (!item.binary || Object.keys(item.binary).length === 0) {\n  console.log('❌ NO SE ENCONTRARON ARCHIVOS');\n  console.log('JSON recibido:', JSON.stringify(item.json, null, 2));\n  \n  return [{\n    json: {\n      error: 'No se recibió ningún archivo',\n      fileName: 'sin_archivo',\n      extension: 'empty',\n      help: 'Asegúrate de enviar el archivo como form-data en Postman con un campo tipo File'\n    }\n  }];\n}\n\nconsole.log('✓ Archivos encontrados:', Object.keys(item.binary));\n\n// Procesar cada archivo recibido\nconst results = [];\n\nfor (const fieldName of Object.keys(item.binary)) {\n  const file = item.binary[fieldName];\n  \n  console.log(`--- Procesando campo: ${fieldName} ---`);\n  console.log('fileName:', file.fileName);\n  console.log('mimeType:', file.mimeType);\n  console.log('fileExtension:', file.fileExtension);\n  \n  let fileName = file.fileName || file.filename || 'archivo_sin_nombre';\n  let extension = '';\n  \n  // 1. Intentar desde fileExtension (campo nativo de n8n)\n  if (file.fileExtension) {\n    extension = file.fileExtension.toLowerCase().replace('.', '');\n    console.log('✓ Extensión desde fileExtension:', extension);\n  }\n  \n  // 2. Extraer desde fileName\n  if (!extension && fileName.includes('.')) {\n    extension = fileName.split('.').pop().toLowerCase();\n    console.log('✓ Extensión desde fileName:', extension);\n  }\n  \n  // 3. Mapear desde mimeType\n  if (!extension && file.mimeType) {\n    const mimeMap = {\n      'application/pdf': 'pdf',\n      'application/vnd.ms-excel': 'xls',\n      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',\n      'application/msword': 'doc',\n      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',\n      'text/csv': 'csv',\n      'image/jpeg': 'jpg',\n      'image/png': 'png',\n      'image/gif': 'gif',\n      'image/webp': 'webp',\n      'text/plain': 'txt',\n      'application/zip': 'zip',\n      'application/x-zip-compressed': 'zip',\n      'application/json': 'json',\n      'application/xml': 'xml',\n      'text/html': 'html'\n    };\n    extension = mimeMap[file.mimeType] || '';\n    if (extension) {\n      console.log('✓ Extensión desde mimeType:', extension);\n    }\n  }\n  \n  results.push({\n    fieldName: fieldName,\n    fileName: fileName,\n    extension: extension || 'desconocido',\n    fileType: extension ? extension.toUpperCase() : 'DESCONOCIDO',\n    mimeType: file.mimeType || 'desconocido',\n    size: file.fileSize || 0\n  });\n}\n\nconsole.log('=== RESULTADO FINAL ===');\nconsole.log(JSON.stringify(results, null, 2));\n\n// Si solo hay un archivo, retornar sus datos directamente\nif (results.length === 1) {\n  return [{\n    json: {\n      ...item.json,\n      ...results[0]\n    },\n    binary: item.binary\n  }];\n}\n\n// Si hay múltiples archivos, retornar array\nreturn [{\n  json: {\n    ...item.json,\n    files: results,\n    totalFiles: results.length\n  },\n  binary: item.binary\n}];"
+      },
+      "id": "25a204b4-e853-4d91-aa90-644c15c9444f",
+      "name": "Extract Extension",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\n\nreturn {\n  estado: 'aprobado',\n  formato: 'pdf',\n  esJustificante: true,\n  mensaje: '✅ Documento PDF válido reconocido como justificante',\n  proximoPaso: 'Procesar en siguiente etapa del workflow',\n  timestamp: new Date().toISOString(),\n  //estudiante: inputData.originalData.emailEstudiante || 'No especificado',\n  //idSolicitud: inputData.originalData.idSolicitud || 'No especificado'\n};"
+      },
+      "id": "8bc46cad-e51b-48d3-b156-00455c28a7c8",
+      "name": "Process Valid PDF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Success Response - PDF válido\nconst data = $input.first().json;\n\n/**\n * $respond({\n  response: {\n    statusCode: 200,\n    headers: {\n      'Content-Type': 'application/json'\n    },\n    body: {\n      estado: \"aprobado\",\n      mensaje: \"✅ Documento PDF válido procesado correctamente\",\n      datos: data,\n      timestamp: new Date().toISOString()\n    }\n  }\n});\n */\n\n\nreturn [{\n    json: {\n        estado: \"Aceptado\",\n        mensaje: data.mensaje || \"✅ Documento PDF válido procesado correctamente\",\n        datos: data,\n        timestamp: new Date().toISOString()\n    }\n}];\n\nreturn data;"
+      },
+      "id": "98165298-5b37-49e9-a4b1-a10a454e7e01",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst formato = inputData.extension;\n\nconst mensajesError = {\n  'doc': '❌ Formato DOC no permitido. Por favor, convierta a PDF.',\n  'docx': '❌ Formato DOCX no permitido. Por favor, convierta a PDF.',\n  'jpg': '❌ Formato JPG no permitido. Se requiere documento PDF.',\n  'jpeg': '❌ Formato JPEG no permitido. Se requiere documento PDF.',\n  'png': '❌ Formato PNG no permitido. Se requiere documento PDF.'\n};\n\nreturn {\n  error: true,\n  formatoDetectado: formato,\n  mensaje: mensajesError[formato] || `❌ Formato ${formato.toUpperCase()} no soportado. Se requiere PDF.`,\n  accionRecomendada: 'Convertir el documento a formato PDF y reintentar.',\n  timestamp: new Date().toISOString(),\n  //estudiante: inputData.originalData.emailEstudiante || 'No especificado',\n  //idSolicitud: inputData.originalData.idSolicitud || 'No especificado'\n};"
+      },
+      "id": "0c533057-0bbd-41eb-ac61-4e882bc0b63c",
+      "name": "Create Error Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error Response - Formato incorrecto\nconst data = $input.first().json;\n\n/**\n * $respond({\n  response: {\n    statusCode: 400,\n    headers: {\n      'Content-Type': 'application/json'\n    },\n    body: {\n      estado: \"rechazado\",\n      error: true,\n      mensaje: data.mensaje || \"❌ Formato de documento no válido\",\n      accionRecomendada: data.accionRecomendada || \"Convertir a PDF\",\n      datos: data,\n      timestamp: new Date().toISOString()\n    }\n  }\n});\n */\n\nreturn [{\n    json: {\n        estado: \"rechazado\",\n        error: true,\n        mensaje: data.mensaje || \"❌ Formato de documento no válido\",\n        accionRecomendada: data.accionRecomendada || \"Convertir a PDF\",\n        datos: data,\n        timestamp: new Date().toISOString()\n    }\n}];\n\n\nreturn data;"
+      },
+      "id": "c95ef11d-5948-46d9-9cca-e9b1f1f55e32",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "547ccfe8-d833-4c11-8277-0828a99178d0",
+              "leftValue": "={{ $json.extension.toLowerCase().replace('.', '').trim() }}",
+              "rightValue": "pdf",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        160
+      ],
+      "id": "2a27314f-d8e3-4950-a993-88b0ab9f394c",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Extension",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Extension": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Valid PDF": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Error Message": {
+      "main": [
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Process Valid PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c9ab5e49-4ce3-46be-ba23-0033997891bd",
+  "meta": {
+    "instanceId": "ef79940205ec892ea7c10c2e4adb8c9686ba1bd2772c17c722df5aa8430a9b4a"
+  },
+  "id": "LhSRj4FjIXGuyYjD",
+  "tags": []
+}
