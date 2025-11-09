@@ -134,12 +134,12 @@ HU-001 → HU-004 → HU-005 (si error)
 
 ### **FASE 3: Testing y Validación (Tareas 10-13)**
 
-#### **T-010: Crear script de pruebas automatizadas**
-- **Descripción:** Crear `tests/test_hu05.sh` que ejecute: TC5.1 a TC5.5 con curl y validación responses
+#### **T-010: Crear casos de prueba manuales**
+- **Descripción:** Crear `tests/casos_prueba_manuales.md` con procedimientos paso a paso para: TC5.1-Email formato incorrecto, TC5.2-Email tamaño excedido, TC5.3-Email múltiples errores, TC5.4-Verificar envío, TC5.5-Validar log. Incluir datos entrada, pasos, resultado esperado
 - **Responsable:** Tester
-- **Estimación:** 5 puntos
-- **Criterio Salida:** Script ejecutable que valida todos los casos
-- **Referencias:** `hu001/tests/test_hu01.sh`
+- **Estimación:** 3 puntos
+- **Criterio Salida:** Documento con 5+ casos manuales documentados
+- **Referencias:** `hu001/docs/HU-01_CASOS_PRUEBA.md`
 
 #### **T-011: Documentar manejo de errores HU-005**
 - **Descripción:** Especificar en ficha técnica: error SMTP, credenciales, timeout, sin email. Definir acciones
@@ -316,7 +316,7 @@ HU-001 → HU-004 → HU-005 (si error)
 | FASE 6 | T-022 a T-024 | 5 | Gestión en Taiga |
 | FASE 7 | T-025 a T-027 | 5 | Calidad y validaciones |
 | FASE 8 | T-028 a T-030 | 12 | Entrega y demo |
-| **TOTAL** | **30 tareas** | **90 puntos** | **Estimación completa HU-005** |
+| **TOTAL** | **30 tareas** | **88 puntos** | **Estimación completa HU-005** |
 
 ### Distribución por Rol
 | Rol | Tareas Asignadas | Puntos | % Carga |
