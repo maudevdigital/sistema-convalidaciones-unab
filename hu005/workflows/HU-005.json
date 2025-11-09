@@ -12,7 +12,7 @@
     },
     {
       "parameters": {
-        "functionCode": "// Validar estructura de datos recibidos\nconst data = $input.all()[0].json;\n\n// Validaciones\nconst validations = {\n  idSolicitud: !!data.idSolicitud,\n  estudianteNombre: !!data.estudiante?.nombre,\n  estudianteEmail: !!data.estudiante?.email && data.estudiante.email.includes('@'),\n  errorTipo: !!data.error?.tipo,\n  errorMensaje: !!data.error?.mensaje\n};\n\n// Verificar todas las validaciones\nconst allValid = Object.values(validations).every(v => v === true);\n\nif (!allValid) {\n  return {\n    json: {\n      error: true,\n      validations: validations,\n      message: \"Datos de entrada inválidos\",\n      received: data\n    }\n  };\n}\n\nreturn {\n  json: {\n    valid: true,\n    data: data\n  }\n};"
+        "functionCode": "// Validar estructura de datos recibidos\nconst input = $input.all()[0].json;\n// Los datos del webhook pueden estar en .body o directamente en el json\nconst data = input.body || input;\n\n// Validaciones\nconst validations = {\n  idSolicitud: !!data.idSolicitud,\n  estudianteNombre: !!data.estudiante?.nombre,\n  estudianteEmail: !!data.estudiante?.email && data.estudiante.email.includes('@'),\n  errorTipo: !!data.error?.tipo,\n  errorMensaje: !!data.error?.mensaje\n};\n\n// Verificar todas las validaciones\nconst allValid = Object.values(validations).every(v => v === true);\n\nif (!allValid) {\n  return {\n    json: {\n      error: true,\n      validations: validations,\n      message: \"Datos de entrada inválidos\",\n      received: data\n    }\n  };\n}\n\nreturn {\n  json: {\n    valid: true,\n    data: data\n  }\n};"
       },
       "id": "function-validar-entrada",
       "name": "Function-ValidarEntrada",
@@ -39,7 +39,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const input = $input.all()[0].json.data;\n\nreturn {\n  json: {\n    estudiante: {\n      nombre: input.estudiante.nombre,\n      rut: input.estudiante.rut,\n      email: input.estudiante.email\n    },\n    solicitud: {\n      id: input.idSolicitud,\n      timestamp: input.timestamp || new Date().toISOString()\n    },\n    error: {\n      tipo: input.error.tipo,\n      mensaje: input.error.mensaje,\n      detalles: input.error.detalles || {}\n    },\n    metadata: {\n      workflow: \"HU-005\",\n      version: \"1.0\",\n      processed_at: new Date().toISOString()\n    }\n  }\n};"
+        "functionCode": "const inputData = $input.all()[0].json;\nconst data = inputData.data || inputData;\n\nreturn {\n  json: {\n    estudiante: {\n      nombre: data.estudiante.nombre,\n      rut: data.estudiante.rut,\n      email: data.estudiante.email\n    },\n    solicitud: {\n      id: data.idSolicitud,\n      timestamp: data.timestamp || new Date().toISOString()\n    },\n    error: {\n      tipo: data.error.tipo,\n      mensaje: data.error.mensaje,\n      detalles: data.error.detalles || {}\n    },\n    metadata: {\n      workflow: \"HU-005\",\n      version: \"1.0\",\n      processed_at: new Date().toISOString()\n    }\n  }\n};"
       },
       "id": "function-preparar-datos",
       "name": "Function-PrepararDatos",
@@ -49,7 +49,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const data = $input.all()[0].json;\n\nconst templates = {\n  formato_incorrecto: {\n    subject: \"Corrección Requerida - Formato de Documento Incorrecto\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\\n\\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que el documento adjunto no está en el formato correcto.\\n\\n📌 PROBLEMA DETECTADO:\\n- Archivo recibido: [NOMBRE_ARCHIVO]\\n- Formato detectado: [TIPO_ARCHIVO]\\n- Motivo rechazo: [MOTIVO_RECHAZO]\\n\\n✅ CÓMO CORREGIR:\\n1. Convierte tu documento a formato PDF\\n2. Verifica que el archivo no supere 10 MB\\n3. Reenvía tu solicitud haciendo clic aquí: [LINK_REENVIO]\\n\\n📧 ¿NECESITAS AYUDA?\\nContacta a nuestro equipo: convalidaciones@unab.cl\\n\\nSaludos cordiales,\\nSistema de Convalidaciones Académicas\\nUniversidad Andrés Bello`\n  },\n  tamano_excedido: {\n    subject: \"Corrección Requerida - Archivo Demasiado Grande\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\\n\\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que el archivo adjunto supera el tamaño máximo permitido.\\n\\n📌 PROBLEMA DETECTADO:\\n- Archivo recibido: [NOMBRE_ARCHIVO]\\n- Tamaño actual: [TAMANO_MB] MB\\n- Tamaño máximo: 10 MB\\n\\n✅ CÓMO CORREGIR:\\n1. Comprime tu archivo PDF\\n2. Verifica que el tamaño final sea menor a 10 MB\\n3. Reenvía tu solicitud: [LINK_REENVIO]\\n\\n📧 ¿NECESITAS AYUDA?\\nContacta: convalidaciones@unab.cl\\n\\nSaludos cordiales,\\nSistema de Convalidaciones Académicas\\nUniversidad Andrés Bello`\n  },\n  archivo_corrupto: {\n    subject: \"Corrección Requerida - Archivo No Puede Ser Leído\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\\n\\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que el archivo adjunto no puede ser leído correctamente.\\n\\n📌 PROBLEMA DETECTADO:\\n- Archivo recibido: [NOMBRE_ARCHIVO]\\n- Error: El archivo está corrupto o dañado\\n\\n✅ CÓMO CORREGIR:\\n1. Verifica que el archivo PDF se abra correctamente\\n2. Genera un nuevo PDF desde el documento original\\n3. Reenvía tu solicitud: [LINK_REENVIO]\\n\\n📧 ¿NECESITAS AYUDA?\\nContacta: convalidaciones@unab.cl\\n\\nSaludos cordiales,\\nSistema de Convalidaciones Académicas\\nUniversidad Andrés Bello`\n  },\n  campos_faltantes: {\n    subject: \"Corrección Requerida - Información Incompleta\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\\n\\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que falta información requerida.\\n\\n📌 CAMPOS FALTANTES:\\n[CAMPOS_FALTANTES]\\n\\n✅ CÓMO CORREGIR:\\n1. Completa todos los campos obligatorios\\n2. Verifica información adjunta\\n3. Reenvía tu solicitud: [LINK_REENVIO]\\n\\n📧 ¿NECESITAS AYUDA?\\nContacta: convalidaciones@unab.cl\\n\\nSaludos cordiales,\\nSistema de Convalidaciones Académicas\\nUniversidad Andrés Bello`\n  }\n};\n\nconst template = templates[data.error.tipo] || templates.formato_incorrecto;\n\nlet subject = template.subject;\nlet body = template.body;\n\nconst replacements = {\n  '[NOMBRE_ESTUDIANTE]': data.estudiante.nombre,\n  '[ID_SOLICITUD]': data.solicitud.id,\n  '[NOMBRE_ARCHIVO]': data.error.detalles.archivoNombre || 'N/A',\n  '[TIPO_ARCHIVO]': data.error.detalles.archivoTipo || 'N/A',\n  '[TAMANO_MB]': data.error.detalles.tamanoMB || 'N/A',\n  '[MOTIVO_RECHAZO]': data.error.detalles.motivoRechazo || data.error.mensaje,\n  '[LINK_REENVIO]': `https://formulario-convalidacion.unab.cl?retry=${data.solicitud.id}`,\n  '[CAMPOS_FALTANTES]': (data.error.detalles.camposFaltantes || []).map(c => `- ${c}`).join('\\n')\n};\n\nObject.keys(replacements).forEach(key => {\n  subject = subject.replace(key, replacements[key]);\n  body = body.replace(new RegExp(key, 'g'), replacements[key]);\n});\n\nreturn {\n  json: {\n    to: data.estudiante.email,\n    from: 'convalidaciones@unab.cl',\n    subject: subject,\n    body: body,\n    metadata: {\n      idSolicitud: data.solicitud.id,\n      tipoError: data.error.tipo,\n      templateUsado: data.error.tipo,\n      estudianteNombre: data.estudiante.nombre\n    }\n  }\n};"
+        "functionCode": "const data = $input.all()[0].json;\n\n// Función para convertir MIME type a formato legible\nfunction formatoLegible(mimeType) {\n  const formatos = {\n    'application/pdf': 'PDF',\n    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word (DOCX)',\n    'application/msword': 'Word (DOC)',\n    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel (XLSX)',\n    'application/vnd.ms-excel': 'Excel (XLS)',\n    'image/jpeg': 'Imagen JPEG',\n    'image/jpg': 'Imagen JPG',\n    'image/png': 'Imagen PNG',\n    'application/zip': 'Archivo ZIP',\n    'text/plain': 'Texto plano'\n  };\n  return formatos[mimeType] || mimeType || 'Desconocido';\n}\n\nconst templates = {\n  formato_incorrecto: {\n    subject: \"Corrección Requerida - Formato de Documento Incorrecto\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\n\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que el documento adjunto no está en el formato correcto.\n\n📌 PROBLEMA DETECTADO:\n- Archivo recibido: [NOMBRE_ARCHIVO]\n- Formato detectado: [TIPO_ARCHIVO]\n- Motivo rechazo: [MOTIVO_RECHAZO]\n\n✅ CÓMO CORREGIR:\n1. Convierte tu documento a formato PDF\n2. Verifica que el archivo no supere 10 MB\n3. Reenvía tu solicitud haciendo clic aquí: [LINK_REENVIO]\n\n📧 ¿NECESITAS AYUDA?\nContacta a nuestro equipo: convalidaciones@unab.cl\n\nSaludos cordiales,\nSistema de Convalidaciones Académicas\nUniversidad Andrés Bello`\n  },\n  tamano_excedido: {\n    subject: \"Corrección Requerida - Archivo Demasiado Grande\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\n\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que el archivo adjunto supera el tamaño máximo permitido.\n\n📌 PROBLEMA DETECTADO:\n- Archivo recibido: [NOMBRE_ARCHIVO]\n- Tamaño actual: [TAMANO_MB] MB\n- Tamaño máximo: 10 MB\n\n✅ CÓMO CORREGIR:\n1. Comprime tu archivo PDF\n2. Verifica que el tamaño final sea menor a 10 MB\n3. Reenvía tu solicitud: [LINK_REENVIO]\n\n📧 ¿NECESITAS AYUDA?\nContacta: convalidaciones@unab.cl\n\nSaludos cordiales,\nSistema de Convalidaciones Académicas\nUniversidad Andrés Bello`\n  },\n  archivo_corrupto: {\n    subject: \"Corrección Requerida - Archivo No Puede Ser Leído\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\n\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que el archivo adjunto no puede ser leído correctamente.\n\n📌 PROBLEMA DETECTADO:\n- Archivo recibido: [NOMBRE_ARCHIVO]\n- Error: El archivo está corrupto o dañado\n\n✅ CÓMO CORREGIR:\n1. Verifica que el archivo PDF se abra correctamente\n2. Genera un nuevo PDF desde el documento original\n3. Reenvía tu solicitud: [LINK_REENVIO]\n\n📧 ¿NECESITAS AYUDA?\nContacta: convalidaciones@unab.cl\n\nSaludos cordiales,\nSistema de Convalidaciones Académicas\nUniversidad Andrés Bello`\n  },\n  campos_faltantes: {\n    subject: \"Corrección Requerida - Información Incompleta\",\n    body: `Estimado/a [NOMBRE_ESTUDIANTE],\n\nHemos recibido tu solicitud de convalidación (ID: [ID_SOLICITUD]), sin embargo, no podemos procesarla debido a que falta información requerida.\n\n📌 CAMPOS FALTANTES:\n[CAMPOS_FALTANTES]\n\n✅ CÓMO CORREGIR:\n1. Completa todos los campos obligatorios\n2. Verifica información adjunta\n3. Reenvía tu solicitud: [LINK_REENVIO]\n\n📧 ¿NECESITAS AYUDA?\nContacta: convalidaciones@unab.cl\n\nSaludos cordiales,\nSistema de Convalidaciones Académicas\nUniversidad Andrés Bello`\n  }\n};\n\nconst template = templates[data.error.tipo] || templates.formato_incorrecto;\n\n// Crear objeto con los valores de reemplazo\nconst replacements = {\n  'NOMBRE_ESTUDIANTE': data.estudiante.nombre,\n  'ID_SOLICITUD': data.solicitud.id,\n  'NOMBRE_ARCHIVO': data.error.detalles.archivoNombre || 'N/A',\n  'TIPO_ARCHIVO': formatoLegible(data.error.detalles.archivoTipo),\n  'TAMANO_MB': data.error.detalles.tamanoMB || 'N/A',\n  'MOTIVO_RECHAZO': data.error.detalles.motivoRechazo || data.error.mensaje,\n  'LINK_REENVIO': `https://formulario-convalidacion.unab.cl?retry=${data.solicitud.id}`,\n  'CAMPOS_FALTANTES': (data.error.detalles.camposFaltantes || []).map(c => `- ${c}`).join('\\n')\n};\n\n// Reemplazar placeholders en subject y body (sin conversión de entidades, quoted-printable lo maneja)\nlet subject = template.subject;\nlet body = template.body;\n\nfor (const [key, value] of Object.entries(replacements)) {\n  const placeholder = `[${key}]`;\n  subject = subject.split(placeholder).join(String(value));\n  body = body.split(placeholder).join(String(value));\n}\n\nreturn {\n  json: {\n    to: data.estudiante.email,\n    from: 'maudevchile@gmail.com',\n    subject: subject,\n    body: body,\n    metadata: {\n      idSolicitud: data.solicitud.id,\n      tipoError: data.error.tipo,\n      templateUsado: data.error.tipo,\n      estudianteNombre: data.estudiante.nombre\n    }\n  }\n};"
       },
       "id": "function-redactar-email",
       "name": "Function-RedactarEmail",
@@ -62,9 +62,11 @@
         "fromEmail": "={{$json.from}}",
         "toEmail": "={{$json.to}}",
         "subject": "={{$json.subject}}",
+        "emailFormat": "text",
         "text": "={{$json.body}}",
         "options": {
-          "allowUnauthorizedCerts": false
+          "allowUnauthorizedCerts": false,
+          "encoding": "quoted-printable"
         }
       },
       "id": "email-correccion",
@@ -81,83 +83,8 @@
     },
     {
       "parameters": {
-        "functionCode": "const emailData = $input.all()[0].json;\nconst previousNode = $workflow.lastNode('Function-PrepararDatos');\nconst previousData = previousNode.json;\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    idSolicitud: emailData.metadata.idSolicitud,\n    tipo_notificacion: \"error_documentacion\",\n    tipo_error: emailData.metadata.tipoError,\n    email_enviado: \"si\",\n    destinatario: emailData.to,\n    template_utilizado: emailData.metadata.templateUsado,\n    estado_envio: \"exitoso\",\n    intentos_envio: 1,\n    estudiante_nombre: emailData.metadata.estudianteNombre,\n    detalles_error: previousData.error.mensaje\n  }\n};"
-      },
-      "id": "function-preparar-log",
-      "name": "Function-PrepararLog",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [1450, 200]
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "sheetName": "={{\"Logs\"}}",
-        "columns": {
-          "mappings": [
-            {
-              "column": "timestamp",
-              "value": "={{$json.timestamp}}"
-            },
-            {
-              "column": "idSolicitud",
-              "value": "={{$json.idSolicitud}}"
-            },
-            {
-              "column": "tipo_notificacion",
-              "value": "={{$json.tipo_notificacion}}"
-            },
-            {
-              "column": "tipo_error",
-              "value": "={{$json.tipo_error}}"
-            },
-            {
-              "column": "email_enviado",
-              "value": "={{$json.email_enviado}}"
-            },
-            {
-              "column": "destinatario",
-              "value": "={{$json.destinatario}}"
-            },
-            {
-              "column": "template_utilizado",
-              "value": "={{$json.template_utilizado}}"
-            },
-            {
-              "column": "estado_envio",
-              "value": "={{$json.estado_envio}}"
-            },
-            {
-              "column": "intentos_envio",
-              "value": "={{$json.intentos_envio}}"
-            },
-            {
-              "column": "estudiante_nombre",
-              "value": "={{$json.estudiante_nombre}}"
-            },
-            {
-              "column": "detalles_error",
-              "value": "={{$json.detalles_error}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "googlesheets-log",
-      "name": "GoogleSheets-Log",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [1650, 200],
-      "credentials": {
-        "googleSheetsOAuth2Api": "={{$credentials.googleSheetsOAuth2Api}}"
-      },
-      "continueOnFail": true,
-      "disabled": true
-    },
-    {
-      "parameters": {
         "respondWith": "json",
-        "responseBody": "={\"success\": true, \"idSolicitud\": \"{{$json.idSolicitud}}\", \"emailEnviado\": true, \"destinatario\": \"{{$json.destinatario}}\", \"tipoError\": \"{{$json.tipo_error}}\", \"templateUtilizado\": \"{{$json.template_utilizado}}\", \"timestamp\": \"{{$json.timestamp}}\", \"logRegistrado\": true, \"mensaje\": \"Email de corrección enviado exitosamente\"}",
+        "responseBody": "={\"success\": true, \"mensaje\": \"Email de corrección enviado exitosamente\", \"emailEnviado\": true}",
         "options": {
           "responseCode": 200
         }
@@ -166,12 +93,12 @@
       "name": "Respond-Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1850, 200]
+      "position": [1450, 200]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\"success\": false, \"error\": \"Datos de entrada inválidos\", \"validations\": {{$json.validations}}, \"mensaje\": \"Faltan campos requeridos o tienen formato incorrecto\"}",
+        "responseBody": "={\"success\": false, \"error\": \"Datos de entrada inválidos\", \"validations\": \"={{$json.validations}}\", \"mensaje\": \"Faltan campos requeridos o tienen formato incorrecto\"}",
         "options": {
           "responseCode": 400
         }
@@ -275,7 +202,7 @@
       "main": [
         [
           {
-            "node": "Function-PrepararLog",
+            "node": "Respond-Success",
             "type": "main",
             "index": 0
           }
@@ -283,28 +210,6 @@
         [
           {
             "node": "Function-LogErrorSMTP",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Function-PrepararLog": {
-      "main": [
-        [
-          {
-            "node": "GoogleSheets-Log",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "GoogleSheets-Log": {
-      "main": [
-        [
-          {
-            "node": "Respond-Success",
             "type": "main",
             "index": 0
           }
