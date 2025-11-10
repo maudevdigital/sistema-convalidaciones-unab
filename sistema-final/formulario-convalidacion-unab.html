@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Convalidación - Universidad Andrés Bello</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #E30613 0%, #8B0000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #E30613;
+        }
+
+        .logo-unab {
+            color: #E30613;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #E30613;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #E30613;
+            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 15px;
+            border: 2px dashed #E30613;
+            border-radius: 8px;
+            background: #fff5f5;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #E30613;
+            font-weight: 600;
+        }
+
+        .file-input-label:hover {
+            background: #ffe5e5;
+            border-color: #c5050f;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #E30613 0%, #a5040e 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(227, 6, 19, 0.3);
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background: white;
+            color: #E30613;
+            border: 2px solid #E30613;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #E30613;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 6, 19, 0.3);
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #E30613 0%, #a5040e 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 6, 19, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-unab">UNIVERSIDAD ANDRÉS BELLO</div>
+            <h1>📝 Solicitud de Convalidación</h1>
+        </div>
+        <p class="subtitle">Complete el formulario para iniciar su proceso de convalidación</p>
+
+        <form id="formConvalidacion">
+            <div class="form-group">
+                <label for="nombre">Nombre Completo <span class="required">*</span></label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez González">
+            </div>
+
+            <div class="form-group">
+                <label for="rut">RUT / ID <span class="required">*</span></label>
+                <input type="text" id="rut" name="rut" required placeholder="Ej: 12.345.678-9">
+            </div>
+
+            <div class="form-group">
+                <label for="carrera">Carrera <span class="required">*</span></label>
+                <input type="text" id="carrera" name="carrera" required placeholder="Ej: Ingeniería Informática">
+            </div>
+
+            <div class="form-group">
+                <label for="asignatura">Asignatura a Convalidar <span class="required">*</span></label>
+                <input type="text" id="asignatura" name="asignatura" required placeholder="Ej: Programación Web">
+            </div>
+
+            <div class="form-group">
+                <label for="institucionOrigen">Institución de Origen <span class="required">*</span></label>
+                <input type="text" id="institucionOrigen" name="institucionOrigen" required placeholder="Ej: Universidad de Chile">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email (opcional)</label>
+                <input type="email" id="email" name="email" placeholder="tu.email@unab.cl">
+            </div>
+
+            <div class="form-group">
+                <label for="documentos">Certificado de Notas / Programa (PDF) <span class="required">*</span></label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="documentos" name="documentos" accept=".pdf">
+                    <label for="documentos" class="file-input-label">
+                        📄 Seleccionar archivo PDF
+                    </label>
+                </div>
+                <div class="file-name" id="fileName">Ningún archivo seleccionado</div>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <span id="btnText">Enviar Solicitud</span>
+            </button>
+
+            <div class="message" id="message"></div>
+        </form>
+
+        <div class="footer">
+            © 2025 Universidad Andrés Bello - Sistema de Convalidaciones
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('formConvalidacion');
+        const fileInput = document.getElementById('documentos');
+        const fileName = document.getElementById('fileName');
+        const message = document.getElementById('message');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+
+        // Webhook URL de n8n - ACTUALIZAR según tu instalación
+        const WEBHOOK_URL = 'http://localhost:5678/webhook/solicitud-convalidacion';
+        
+        // CONFIGURACIÓN: Si usas n8n en otro servidor, actualiza esta URL
+        // Ejemplos:
+        // const WEBHOOK_URL = 'https://n8n.tudominio.com/webhook/solicitud-convalidacion';
+        // const WEBHOOK_URL = 'http://192.168.1.100:5678/webhook/solicitud-convalidacion';
+
+        // Mostrar nombre del archivo seleccionado
+        fileInput.addEventListener('change', function(e) {
+            // Ocultar mensaje de error previo
+            message.style.display = 'none';
+            
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Validar que sea PDF por extensión y tipo MIME
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const isPDF = file.type === 'application/pdf' || fileExtension === 'pdf';
+                
+                // Validación adicional: verificar que NO sea otro tipo de archivo renombrado
+                const isSuspicious = (fileExtension === 'pdf' && file.type !== 'application/pdf' && file.type !== '');
+                
+                if (!isPDF || isSuspicious) {
+                    fileName.textContent = `❌ Archivo rechazado: ${file.name}`;
+                    fileName.style.color = '#E30613';
+                    
+                    let errorMsg = `❌ Error: Solo se aceptan archivos en formato PDF.<br><br>📋 El archivo "${file.name}" no es válido.`;
+                    
+                    if (isSuspicious) {
+                        errorMsg += `<br><br>⚠️ <strong>Advertencia:</strong> Este archivo parece ser de tipo ${file.type || 'desconocido'} renombrado como PDF.<br>Por favor, convierta el documento original a formato PDF auténtico.`;
+                    } else {
+                        errorMsg += `<br>Por favor, seleccione un archivo con extensión .pdf`;
+                    }
+                    
+                    showMessage(errorMsg, 'error');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validar tamaño (10MB máximo)
+                const maxSizeMB = 10;
+                const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                if (file.size > maxSizeBytes) {
+                    fileName.textContent = `❌ Archivo muy grande: ${file.name}`;
+                    fileName.style.color = '#E30613';
+                    showMessage(`❌ Error: El archivo es muy grande<br><br>📊 Tamaño del archivo: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>Tamaño máximo permitido: ${maxSizeMB} MB<br><br>Por favor, comprima el archivo o use uno más pequeño.`, 'error');
+                    this.value = '';
+                    return;
+                }
+                
+                fileName.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                fileName.style.color = '#27ae60';
+            } else {
+                fileName.textContent = 'Ningún archivo seleccionado';
+                fileName.style.color = '#666';
+            }
+        });
+
+        // Manejar envío del formulario
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Ocultar mensajes previos
+            message.style.display = 'none';
+            
+            // Validar que haya un archivo
+            if (!fileInput.files || !fileInput.files[0]) {
+                showMessage('❌ Error: Debe adjuntar un documento PDF<br><br>📎 El campo "Certificado de Notas / Programa" es obligatorio.<br>Por favor, seleccione un archivo PDF antes de enviar la solicitud.', 'error');
+                
+                // Resaltar el campo de archivo
+                const fileLabel = document.querySelector('.file-input-label');
+                fileLabel.style.borderColor = '#E30613';
+                fileLabel.style.background = '#ffe5e5';
+                
+                setTimeout(() => {
+                    fileLabel.style.borderColor = '#E30613';
+                    fileLabel.style.background = '#fff5f5';
+                }, 3000);
+                
+                return;
+            }
+
+            // Validar que sea PDF por extensión y tipo MIME
+            const file = fileInput.files[0];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const isPDF = file.type === 'application/pdf' || fileExtension === 'pdf';
+            
+            if (!isPDF) {
+                showMessage(`❌ Error: Solo se aceptan archivos en formato PDF<br><br>📋 El archivo "${file.name}" no es un PDF válido.<br>Formatos aceptados: .pdf<br>Formato recibido: .${fileExtension}`, 'error');
+                
+                // Limpiar el input
+                fileInput.value = '';
+                fileName.textContent = 'Ningún archivo seleccionado';
+                fileName.style.color = '#666';
+                
+                return;
+            }
+
+            // Validar tamaño del archivo (máximo 10MB)
+            const maxSizeMB = 10;
+            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+            if (file.size > maxSizeBytes) {
+                showMessage(`❌ Error: El archivo es muy grande<br><br>📊 Tamaño del archivo: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>Tamaño máximo permitido: ${maxSizeMB} MB<br><br>Por favor, comprima el archivo o use uno más pequeño.`, 'error');
+                return;
+            }
+
+            // Deshabilitar botón y mostrar spinner
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span> Enviando...';
+            message.style.display = 'none';
+
+            try {
+                // Leer el archivo como base64
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result.split(',')[1]; // Quitar el prefijo data:application/pdf;base64,
+                    
+                    // Preparar datos con archivo en base64
+                    const formData = {
+                        nombre: document.getElementById('nombre').value,
+                        rut: document.getElementById('rut').value,
+                        carrera: document.getElementById('carrera').value,
+                        asignatura: document.getElementById('asignatura').value,
+                        institucionOrigen: document.getElementById('institucionOrigen').value,
+                        email: document.getElementById('email').value,
+                        documentos: file.name,
+                        file: {
+                            filename: file.name,
+                            data: base64Data,
+                            mimeType: file.type,
+                            size: file.size
+                        }
+                    };
+
+                    // Enviar datos al webhook
+                    const response = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    // Restaurar botón
+                    submitBtn.disabled = false;
+                    btnText.innerHTML = 'Enviar Solicitud';
+
+                    if (result.success) {
+                        // Obtener ID de diferentes posibles ubicaciones
+                        const solicitudId = result.id || result.solicitudId || result.data?.id || 'En procesamiento';
+                        const emailDestino = document.getElementById('email').value || 'su correo electrónico';
+                        
+                        let mensaje = `✅ ¡Solicitud enviada exitosamente!<br><br>`;
+                        mensaje += `📋 <strong>ID de Solicitud: ${solicitudId}</strong><br><br>`;
+                        
+                        if (emailDestino !== 'su correo electrónico') {
+                            mensaje += `📧 <strong>Importante:</strong> Se ha enviado un correo electrónico a <strong>${emailDestino}</strong> con todos los detalles de su solicitud.<br><br>`;
+                            mensaje += `📝 Por favor, revise su bandeja de entrada (y la carpeta de spam) para ver la información completa.<br><br>`;
+                        } else {
+                            mensaje += `⚠️ <strong>Nota:</strong> No proporcionó un correo electrónico, por lo que no recibirá notificaciones automáticas.<br><br>`;
+                            mensaje += `💡 Guarde su ID de solicitud para futuras consultas.<br><br>`;
+                        }
+                        
+                        mensaje += `⏱️ <strong>Tiempo estimado de respuesta:</strong> ${result.tiempoEstimado || '5-10 días hábiles'}<br><br>`;
+                        mensaje += `📞 <strong>Consultas:</strong> Indique siempre su ID de solicitud: <code>${solicitudId}</code>`;
+                        
+                       // Agregar botones de acción
+                        mensaje += `<div class="action-buttons">`;
+                        mensaje += `<button type="button" class="btn-primary" onclick="nuevaSolicitud()">📝 Nueva Solicitud</button>`;
+                        mensaje += `</div>`;
+                        
+                        showMessage(mensaje, 'success');
+                        
+                        // Limpiar formulario después de éxito
+                        setTimeout(() => {
+                            form.reset();
+                            fileName.textContent = 'Ningún archivo seleccionado';
+                            fileName.style.color = '#666';
+                        }, 500);
+                        
+                    } else {
+                        let errorMsg = `❌ ${result.message}<br><br>`;
+                        
+                        if (result.errors && Array.isArray(result.errors)) {
+                            errorMsg += `<strong>Errores detectados:</strong><br>`;
+                            result.errors.forEach(err => {
+                                errorMsg += `• ${err}<br>`;
+                            });
+                        }
+                        
+                        if (result.detalles) {
+                            errorMsg += `<br><strong>Detalles:</strong> ${result.detalles}`;
+                        }
+                        
+                        showMessage(errorMsg, 'error');
+                    }
+                };
+                
+                reader.onerror = function() {
+                    showMessage('❌ Error al leer el archivo. Por favor, intente nuevamente.', 'error');
+                    submitBtn.disabled = false;
+                    btnText.innerHTML = 'Enviar Solicitud';
+                };
+                
+                // Leer el archivo
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                showMessage(`❌ Error al enviar la solicitud: ${error.message}`, 'error');
+                submitBtn.disabled = false;
+                btnText.innerHTML = 'Enviar Solicitud';
+            }
+        });
+
+        function showMessage(text, type) {
+            message.innerHTML = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+        }
+
+        // Función para resetear el formulario manualmente
+        function nuevaSolicitud() {
+            form.reset();
+            fileName.textContent = 'Ningún archivo seleccionado';
+            fileName.style.color = '#666';
+            message.style.display = 'none';
+            
+            // Scroll suave al inicio del formulario
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Enfocar el primer campo
+            document.getElementById('nombre').focus();
+        }
+    </script>
+</body>
+</html>
