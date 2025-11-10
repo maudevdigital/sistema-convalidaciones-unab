@@ -850,3 +850,4 @@ Proyecto académico - UNAB 2025### Error: "Unable to sign without access token"
 ---
 **Versión:** 1.0  
 **Última actualización:** 18 de octubre de 2025
+"# sistema-convalidaciones-unab" 
