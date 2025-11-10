@@ -1,444 +1,108 @@
-================================================================================
-  GUÍA COMPLETA PARA EJECUTAR PRUEBAS DEL HU-005
-  Sistema de Notificación de Corrección de Documentos
-================================================================================
+# Helper para enviar JSON como UTF-8 bytes
+function Send-JsonUtf8 {
+  param(
+    [Parameter(Mandatory=$true)][string]$Url,
+    [Parameter(Mandatory=$true)][hashtable]$BodyObject
+  )
+  $json = $BodyObject | ConvertTo-Json -Depth 20
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+  Invoke-WebRequest -Uri $Url `
+    -Method POST `
+    -Body $bytes `
+    -ContentType 'application/json; charset=utf-8'
+}
 
-FECHA: 9 de noviembre de 2025
-AUTOR: Sistema de Convalidaciones UNAB
-VERSIÓN: 1.0
-
-================================================================================
-📋 TABLA DE CONTENIDOS
-================================================================================
-
-1. REQUISITOS PREVIOS
-2. INICIAR EL ENTORNO n8n
-3. VERIFICAR CONFIGURACIÓN
-4. EJECUTAR PRUEBAS MANUALES (4 TEMPLATES)
-5. EJECUTAR PRUEBAS AUTOMÁTICAS (PowerShell)
-6. VERIFICAR RESULTADOS
-7. DETENER EL ENTORNO
-8. TROUBLESHOOTING
-
-================================================================================
-1️⃣ REQUISITOS PREVIOS
-================================================================================
-
-ANTES DE COMENZAR, ASEGÚRATE DE TENER:
-
-✅ Docker Desktop instalado y ejecutándose
-✅ n8n container corriendo (convalidacion-academica-n8n-1)
-✅ Workflow HU-005.json importado en n8n
-✅ Credenciales SMTP configuradas (maudevchile@gmail.com)
-✅ Email de destino activo (lucasmaulenr@gmail.com)
-
-VERIFICAR DOCKER:
-1. Abre Docker Desktop
-2. Ve a "Containers"
-3. Busca: convalidacion-academica-n8n-1
-4. Estado debe ser: "Running" (verde)
-
-================================================================================
-2️⃣ INICIAR EL ENTORNO n8n
-================================================================================
-
-OPCIÓN A: USAR DOCKER DESKTOP (RECOMENDADO)
---------------------------------------------
-1. Abre Docker Desktop
-2. Ve a pestaña "Containers"
-3. Busca: convalidacion-academica-n8n-1
-4. Si está detenido (Stopped):
-   - Click en botón "▶ Start"
-5. Espera 10-15 segundos hasta que estado sea "Running"
-6. Abre navegador: http://localhost:5678
-
-
-OPCIÓN B: USAR LÍNEA DE COMANDOS (PowerShell)
-----------------------------------------------
-1. Abre PowerShell como Administrador
-
-2. Navega a la carpeta del proyecto:
-   cd C:\Users\lucas\OneDrive\Escritorio\Uni2025\Practica\Convalidacion-Academica
-
-3. Inicia Docker Compose:
-   docker-compose up -d
-
-4. Verifica que está corriendo:
-   docker ps
-
-   Deberías ver:
-   CONTAINER ID   IMAGE     COMMAND      STATUS       PORTS                    NAMES
-   xxxxxxxxxxxx   n8nio...  "tini..."    Up 2 mins    0.0.0.0:5678->5678/tcp   convalidacion-academica-n8n-1
-
-5. Abre navegador: http://localhost:5678
-
-================================================================================
-3️⃣ VERIFICAR CONFIGURACIÓN
-================================================================================
-
-PASO 1: ACCEDER A n8n
-----------------------
-1. Abre navegador
-2. Ve a: http://localhost:5678
-3. Inicia sesión con tus credenciales
-
-PASO 2: ABRIR WORKFLOW HU-005
-------------------------------
-1. En el menú izquierdo, click en "Workflows"
-2. Busca: "HU-005: Notificación Corrección Documentos"
-3. Click para abrir
-
-PASO 3: VERIFICAR NODOS ACTIVOS (9 NODOS)
-------------------------------------------
-Debes ver estos nodos en VERDE:
-✅ Webhook-HU004
-✅ Function-ValidarEntrada
-✅ IF-DatosValidos
-✅ Function-PrepararDatos
-✅ Function-RedactarEmail
-✅ Email-Correccion
-✅ Respond-Success
-✅ Respond-Error-Validacion
-✅ Function-LogErrorSMTP
-✅ Respond-Error-SMTP
-
-PASO 4: ACTIVAR WEBHOOK
-------------------------
-1. Click en nodo "Webhook-HU004"
-2. Verifica que aparezca:
-   URL: http://localhost:5678/webhook/hu005-notificacion-correccion
-   Method: POST
-3. Si no está activo, click en botón "Activate" (esquina superior derecha)
-
-PASO 5: VERIFICAR CREDENCIALES SMTP
-------------------------------------
-1. Click en nodo "Email-Correccion"
-2. Verifica configuración:
-   - Host: smtp.gmail.com
-   - Port: 465
-   - User: maudevchile@gmail.com
-   - Secure Connection: SSL/TLS
-   - Encoding: quoted-printable
-3. Si falta configuración, agrégala desde:
-   Settings > Credentials > SMTP account
-
-================================================================================
-4️⃣ EJECUTAR PRUEBAS MANUALES (4 TEMPLATES)
-================================================================================
-
-INSTRUCCIONES GENERALES:
-------------------------
-1. Abre PowerShell
-2. Copia y pega cada comando completo
-3. Presiona Enter
-4. Espera 5-10 segundos
-5. Revisa tu email: lucasmaulenr@gmail.com
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PRUEBA 1: FORMATO INCORRECTO (formato_incorrecto)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-OBJETIVO: Validar template cuando el archivo no es PDF
-CARACTERES UTF-8: María José Pérez Núñez (á, é, ñ)
-
-COMANDO POWERSHELL:
--------------------
-$jsonBody = @{
-  idSolicitud = "SOL-2025-001"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
-    nombre = "María José Pérez Núñez"
-    rut = "12.345.678-9"
-    email = "lucasmaulenr@gmail.com"
-  }
-  error = @{
-    tipo = "formato_incorrecto"
-    mensaje = "El archivo no está en formato PDF"
-    detalles = @{
-      archivoNombre = "certificado_notas.docx"
-      archivoTipo = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      motivoRechazo = "Solo se aceptan archivos en formato PDF"
-    }
-  }
-} | ConvertTo-Json -Depth 10
-
-Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST `
-  -Body $jsonBody `
-  -ContentType "application/json" `
-  | Select-Object StatusCode, Content
-
-RESULTADO ESPERADO:
--------------------
-StatusCode: 200
-Content: {"success": true, "mensaje": "Email de corrección enviado exitosamente"}
-
-EMAIL ESPERADO:
----------------
-Para: lucasmaulenr@gmail.com
-Asunto: Corrección Requerida - Formato de Documento Incorrecto
-Contenido: "Estimado/a María José Pérez Núñez..."
-Validar: Caracteres especiales (á, é, ñ) se ven correctos
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PRUEBA 2: TAMAÑO EXCEDIDO (tamano_excedido)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-OBJETIVO: Validar template cuando el archivo supera 10 MB
-CARACTERES UTF-8: Andrés Muñoz (é, ñ)
-
-COMANDO POWERSHELL:
--------------------
-$jsonBody = @{
-  idSolicitud = "SOL-2025-002"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
-    nombre = "Andrés Muñoz"
-    rut = "23.456.789-0"
-    email = "lucasmaulenr@gmail.com"
-  }
-  error = @{
-    tipo = "tamano_excedido"
-    mensaje = "El archivo supera el tamaño máximo permitido"
-    detalles = @{
-      archivoNombre = "certificado_notas.pdf"
-      archivoTipo = "application/pdf"
-      tamanoMB = "15.7"
-    }
-  }
-} | ConvertTo-Json -Depth 10
-
-Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST `
-  -Body $jsonBody `
-  -ContentType "application/json" `
-  | Select-Object StatusCode, Content
-
-RESULTADO ESPERADO:
--------------------
-StatusCode: 200
-Content: {"success": true, "mensaje": "Email de corrección enviado exitosamente"}
-
-EMAIL ESPERADO:
----------------
-Para: lucasmaulenr@gmail.com
-Asunto: Corrección Requerida - Archivo Demasiado Grande
-Contenido: "Estimado/a Andrés Muñoz..."
-           "Tamaño actual: 15.7 MB"
-Validar: Caracteres especiales (é, ñ) se ven correctos
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PRUEBA 3: ARCHIVO CORRUPTO (archivo_corrupto)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-OBJETIVO: Validar template cuando el archivo está dañado
-CARACTERES UTF-8: José Hernández (é, á)
-
-COMANDO POWERSHELL:
--------------------
-$jsonBody = @{
-  idSolicitud = "SOL-2025-003"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
-    nombre = "José Hernández"
-    rut = "34.567.890-1"
-    email = "lucasmaulenr@gmail.com"
-  }
-  error = @{
-    tipo = "archivo_corrupto"
-    mensaje = "El archivo no puede ser leído"
-    detalles = @{
-      archivoNombre = "certificado_notas.pdf"
-      archivoTipo = "application/pdf"
-    }
-  }
-} | ConvertTo-Json -Depth 10
-
-Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST `
-  -Body $jsonBody `
-  -ContentType "application/json" `
-  | Select-Object StatusCode, Content
-
-RESULTADO ESPERADO:
--------------------
-StatusCode: 200
-Content: {"success": true, "mensaje": "Email de corrección enviado exitosamente"}
-
-EMAIL ESPERADO:
----------------
-Para: lucasmaulenr@gmail.com
-Asunto: Corrección Requerida - Archivo No Puede Ser Leído
-Contenido: "Estimado/a José Hernández..."
-Validar: Caracteres especiales (é, á) se ven correctos
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PRUEBA 4: CAMPOS FALTANTES (campos_faltantes)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-OBJETIVO: Validar template cuando faltan campos obligatorios
-CARACTERES UTF-8: María Fernández (í, á)
-
-COMANDO POWERSHELL:
--------------------
-$jsonBody = @{
-  idSolicitud = "SOL-2025-004"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
-    nombre = "María Fernández"
-    rut = "45.678.901-2"
-    email = "lucasmaulenr@gmail.com"
-  }
-  error = @{
-    tipo = "campos_faltantes"
-    mensaje = "Faltan campos obligatorios"
-    detalles = @{
-      camposFaltantes = @(
-        "Nombre de la institución de origen",
-        "Año de certificación",
-        "Firma del estudiante"
-      )
-    }
-  }
-} | ConvertTo-Json -Depth 10
-
-Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST `
-  -Body $jsonBody `
-  -ContentType "application/json" `
-  | Select-Object StatusCode, Content
-
-RESULTADO ESPERADO:
--------------------
-StatusCode: 200
-Content: {"success": true, "mensaje": "Email de corrección enviado exitosamente"}
-
-EMAIL ESPERADO:
----------------
-Para: lucasmaulenr@gmail.com
-Asunto: Corrección Requerida - Información Incompleta
-Contenido: "Estimado/a María Fernández..."
-           "📌 CAMPOS FALTANTES:"
-           "- Nombre de la institución de origen"
-           "- Año de certificación"
-           "- Firma del estudiante"
-Validar: Caracteres especiales (í, á, ó) se ven correctos
-
-
-================================================================================
-5️⃣ EJECUTAR PRUEBAS AUTOMÁTICAS (PowerShell Script)
-================================================================================
-
-Si prefieres ejecutar las 4 pruebas de una sola vez:
-
-OPCIÓN A: CREAR ARCHIVO DE SCRIPT
-----------------------------------
-1. Abre Notepad o VS Code
-2. Copia el siguiente contenido:
-
-──────────────────────────────────────────────────────────────────────────────
-# Script de Pruebas Automáticas HU-005
-# Ejecuta las 4 pruebas de templates
+$baseUrl = "http://localhost:5678/webhook/hu005-notificacion-correccion"
 
 Write-Host ""
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  EJECUTANDO PRUEBAS AUTOMÁTICAS HU-005" -ForegroundColor Yellow
+Write-Host "  EJECUTANDO PRUEBAS AUTOMÁTICAS HU-005 (UTF-8)" -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 
 # PRUEBA 1: formato_incorrecto
 Write-Host "🧪 PRUEBA 1/4: formato_incorrecto (María José Pérez Núñez)" -ForegroundColor Green
-$jsonBody1 = @{
+$body1 = @{
   idSolicitud = "SOL-AUTO-001"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
+  timestamp   = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
+  estudiante  = @{
     nombre = "María José Pérez Núñez"
-    rut = "12.345.678-9"
-    email = "lucasmaulenr@gmail.com"
+    rut    = "12.345.678-9"
+    email  = "lucasmaulenr@gmail.com"
   }
   error = @{
-    tipo = "formato_incorrecto"
+    tipo    = "formato_incorrecto"
     mensaje = "El archivo no está en formato PDF"
     detalles = @{
       archivoNombre = "certificado_notas.docx"
-      archivoTipo = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      archivoTipo   = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       motivoRechazo = "Solo se aceptan archivos en formato PDF"
     }
   }
-} | ConvertTo-Json -Depth 10
-
-$response1 = Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST -Body $jsonBody1 -ContentType "application/json"
+}
+$response1 = Send-JsonUtf8 -Url $baseUrl -BodyObject $body1
 Write-Host "   ✅ Status: $($response1.StatusCode)" -ForegroundColor White
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 # PRUEBA 2: tamano_excedido
 Write-Host "🧪 PRUEBA 2/4: tamano_excedido (Andrés Muñoz)" -ForegroundColor Green
-$jsonBody2 = @{
+$body2 = @{
   idSolicitud = "SOL-AUTO-002"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
+  timestamp   = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
+  estudiante  = @{
     nombre = "Andrés Muñoz"
-    rut = "23.456.789-0"
-    email = "lucasmaulenr@gmail.com"
+    rut    = "23.456.789-0"
+    email  = "lucasmaulenr@gmail.com"
   }
   error = @{
-    tipo = "tamano_excedido"
+    tipo    = "tamano_excedido"
     mensaje = "El archivo supera el tamaño máximo permitido"
     detalles = @{
       archivoNombre = "certificado_notas.pdf"
-      archivoTipo = "application/pdf"
-      tamanoMB = "15.7"
+      archivoTipo   = "application/pdf"
+      tamanoMB      = "15.7"
     }
   }
-} | ConvertTo-Json -Depth 10
-
-$response2 = Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST -Body $jsonBody2 -ContentType "application/json"
+}
+$response2 = Send-JsonUtf8 -Url $baseUrl -BodyObject $body2
 Write-Host "   ✅ Status: $($response2.StatusCode)" -ForegroundColor White
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 # PRUEBA 3: archivo_corrupto
 Write-Host "🧪 PRUEBA 3/4: archivo_corrupto (José Hernández)" -ForegroundColor Green
-$jsonBody3 = @{
+$body3 = @{
   idSolicitud = "SOL-AUTO-003"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
+  timestamp   = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
+  estudiante  = @{
     nombre = "José Hernández"
-    rut = "34.567.890-1"
-    email = "lucasmaulenr@gmail.com"
+    rut    = "34.567.890-1"
+    email  = "lucasmaulenr@gmail.com"
   }
   error = @{
-    tipo = "archivo_corrupto"
+    tipo    = "archivo_corrupto"
     mensaje = "El archivo no puede ser leído"
     detalles = @{
       archivoNombre = "certificado_notas.pdf"
-      archivoTipo = "application/pdf"
+      archivoTipo   = "application/pdf"
     }
   }
-} | ConvertTo-Json -Depth 10
-
-$response3 = Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST -Body $jsonBody3 -ContentType "application/json"
+}
+$response3 = Send-JsonUtf8 -Url $baseUrl -BodyObject $body3
 Write-Host "   ✅ Status: $($response3.StatusCode)" -ForegroundColor White
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 # PRUEBA 4: campos_faltantes
 Write-Host "🧪 PRUEBA 4/4: campos_faltantes (María Fernández)" -ForegroundColor Green
-$jsonBody4 = @{
+$body4 = @{
   idSolicitud = "SOL-AUTO-004"
-  timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
-  estudiante = @{
+  timestamp   = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ")
+  estudiante  = @{
     nombre = "María Fernández"
-    rut = "45.678.901-2"
-    email = "lucasmaulenr@gmail.com"
+    rut    = "45.678.901-2"
+    email  = "lucasmaulenr@gmail.com"
   }
   error = @{
-    tipo = "campos_faltantes"
+    tipo    = "campos_faltantes"
     mensaje = "Faltan campos obligatorios"
     detalles = @{
       camposFaltantes = @(
@@ -448,393 +112,13 @@ $jsonBody4 = @{
       )
     }
   }
-} | ConvertTo-Json -Depth 10
-
-$response4 = Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" `
-  -Method POST -Body $jsonBody4 -ContentType "application/json"
+}
+$response4 = Send-JsonUtf8 -Url $baseUrl -BodyObject $body4
 Write-Host "   ✅ Status: $($response4.StatusCode)" -ForegroundColor White
 
 Write-Host ""
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  ✅ PRUEBAS COMPLETADAS" -ForegroundColor Green
+Write-Host "  ✅ PRUEBAS COMPLETADAS (UTF-8)" -ForegroundColor Green
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "📧 Revisa tu email: lucasmaulenr@gmail.com" -ForegroundColor Yellow
-Write-Host "   Deberías recibir 4 emails en los próximos minutos" -ForegroundColor White
-Write-Host ""
-──────────────────────────────────────────────────────────────────────────────
-
-3. Guarda como: test-hu005-completo.ps1
-   Ubicación: C:\Users\lucas\OneDrive\Escritorio\Uni2025\Practica\Convalidacion-Academica\hu005\tests\
-
-4. Ejecuta:
-   cd C:\Users\lucas\OneDrive\Escritorio\Uni2025\Practica\Convalidacion-Academica\hu005\tests
-   .\test-hu005-completo.ps1
-
-
-OPCIÓN B: COPIAR Y PEGAR DIRECTAMENTE EN POWERSHELL
-----------------------------------------------------
-1. Abre PowerShell
-2. Copia TODO el script de arriba (desde "Write-Host" hasta el final)
-3. Pega en PowerShell
-4. Presiona Enter
-5. Espera que ejecute las 4 pruebas (toma ~10 segundos)
-
-
-================================================================================
-6️⃣ VERIFICAR RESULTADOS
-================================================================================
-
-PASO 1: VERIFICAR RESPUESTAS EN POWERSHELL
--------------------------------------------
-Cada prueba debe mostrar:
-✅ StatusCode: 200
-✅ Content: {"success": true, "mensaje": "Email de corrección enviado exitosamente"}
-
-Si ves StatusCode diferente a 200:
-❌ 400 = Datos inválidos (revisa JSON)
-❌ 404 = Webhook no encontrado (activa el workflow en n8n)
-❌ 500 = Error en servidor (revisa credenciales SMTP)
-
-
-PASO 2: VERIFICAR EMAILS RECIBIDOS
------------------------------------
-1. Abre Gmail: https://mail.google.com
-2. Inicia sesión: lucasmaulenr@gmail.com
-3. Busca emails de: maudevchile@gmail.com
-4. Deberías ver 4 emails:
-
-   Email 1:
-   --------
-   Asunto: Corrección Requerida - Formato de Documento Incorrecto
-   Nombre: María José Pérez Núñez
-   Validar: á, é, ñ se ven correctos (NO Mar�a Jos�)
-
-   Email 2:
-   --------
-   Asunto: Corrección Requerida - Archivo Demasiado Grande
-   Nombre: Andrés Muñoz
-   Tamaño: 15.7 MB
-   Validar: é, ñ se ven correctos
-
-   Email 3:
-   --------
-   Asunto: Corrección Requerida - Archivo No Puede Ser Leído
-   Nombre: José Hernández
-   Validar: é, á se ven correctos
-
-   Email 4:
-   --------
-   Asunto: Corrección Requerida - Información Incompleta
-   Nombre: María Fernández
-   Campos faltantes: 3 listados
-   Validar: í, á se ven correctos
-
-
-PASO 3: VERIFICAR EJECUCIONES EN n8n
--------------------------------------
-1. Ve a n8n: http://localhost:5678
-2. Abre workflow HU-005
-3. Click en pestaña "Executions" (esquina superior derecha)
-4. Deberías ver 4 ejecuciones con estado "success" (verde)
-5. Click en cada una para ver el flujo de datos
-
-
-PASO 4: VERIFICAR CARACTERES UTF-8 (CRÍTICO)
----------------------------------------------
-Abre cada email y verifica que NO haya caracteres corruptos:
-
-✅ CORRECTO:
-   María José Pérez Núñez
-   Andrés Muñoz
-   José Hernández
-   María Fernández
-   año, académico, institución, certificación
-
-❌ INCORRECTO (si ves esto, hay problema):
-   Mar�a Jos� P�rez N��ez
-   Andr�s Mu�oz
-   Jos� Hern�ndez
-   a�o, acad�mico
-
-
-================================================================================
-7️⃣ DETENER EL ENTORNO
-================================================================================
-
-OPCIÓN A: DOCKER DESKTOP
--------------------------
-1. Abre Docker Desktop
-2. Ve a "Containers"
-3. Busca: convalidacion-academica-n8n-1
-4. Click en botón "⏹ Stop"
-
-
-OPCIÓN B: POWERSHELL
---------------------
-1. Abre PowerShell
-2. Ejecuta:
-   docker stop convalidacion-academica-n8n-1
-
-3. O detén todo el stack:
-   cd C:\Users\lucas\OneDrive\Escritorio\Uni2025\Practica\Convalidacion-Academica
-   docker-compose down
-
-
-================================================================================
-8️⃣ TROUBLESHOOTING (SOLUCIÓN DE PROBLEMAS)
-================================================================================
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 1: "No connection could be made" (No hay conexión)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: Docker container no está corriendo
-
-SOLUCIÓN:
-1. Abre Docker Desktop
-2. Ve a "Containers"
-3. Inicia: convalidacion-academica-n8n-1
-4. Espera 10 segundos
-5. Intenta nuevamente
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 2: StatusCode 404 (Webhook no encontrado)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: Workflow no está activo
-
-SOLUCIÓN:
-1. Ve a n8n: http://localhost:5678
-2. Abre workflow "HU-005: Notificación Corrección Documentos"
-3. Click en botón "Activate" (esquina superior derecha)
-4. Verifica que aparezca "Active" en verde
-5. Intenta nuevamente
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 3: StatusCode 400 (Datos inválidos)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: JSON mal formado o campos faltantes
-
-SOLUCIÓN:
-1. Copia exactamente el comando de esta guía
-2. NO modifiques la estructura JSON
-3. Verifica que incluya:
-   - idSolicitud
-   - estudiante.nombre
-   - estudiante.email
-   - error.tipo
-   - error.mensaje
-4. Intenta nuevamente
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 4: StatusCode 500 (Error en servidor)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: Error en SMTP (credenciales incorrectas o Gmail bloqueado)
-
-SOLUCIÓN:
-1. Ve a n8n: http://localhost:5678
-2. Settings > Credentials
-3. Busca: SMTP account (maudevchile@gmail.com)
-4. Verifica:
-   - Host: smtp.gmail.com
-   - Port: 465
-   - User: maudevchile@gmail.com
-   - Password: [App Password de 16 caracteres]
-   - Secure: SSL/TLS
-5. Si falta App Password:
-   - Ve a: https://myaccount.google.com/apppasswords
-   - Genera nueva contraseña de aplicación
-   - Actualiza en n8n
-6. Intenta nuevamente
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 5: Email no llega (StatusCode 200 OK pero sin email)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: Email en spam o demora en entrega
-
-SOLUCIÓN:
-1. Revisa carpeta SPAM en Gmail
-2. Busca: maudevchile@gmail.com
-3. Si está en spam:
-   - Marca como "No es spam"
-   - Mueve a bandeja de entrada
-4. Espera 1-2 minutos (Gmail puede demorar)
-5. Revisa ejecución en n8n:
-   - Executions > Click en ejecución
-   - Verifica nodo "Email-Correccion" tenga éxito
-   - Revisa output del nodo
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 6: Caracteres UTF-8 corruptos (Mar�a en vez de María)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: Nodo Email-Correccion sin encoding correcto
-
-SOLUCIÓN:
-1. Ve a n8n: http://localhost:5678
-2. Abre workflow HU-005
-3. Click en nodo "Email-Correccion"
-4. Verifica configuración:
-   Email Format: text (NO html)
-   Options > Encoding: quoted-printable
-5. Si está mal configurado:
-   - Cambia Email Format a "text"
-   - Expande "Options"
-   - Set Encoding: "quoted-printable"
-   - Click "Save"
-6. Ejecuta prueba nuevamente
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROBLEMA 7: Docker Desktop no inicia container
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CAUSA: Puerto 5678 ocupado o error en Docker
-
-SOLUCIÓN:
-1. Verifica que puerto 5678 esté libre:
-   En PowerShell:
-   netstat -ano | findstr :5678
-
-2. Si hay proceso usando el puerto:
-   taskkill /PID [número_del_PID] /F
-
-3. Reinicia Docker Desktop:
-   - Click derecho en ícono Docker
-   - "Restart Docker Desktop"
-   - Espera 30 segundos
-
-4. Inicia container nuevamente
-
-
-================================================================================
-📊 RESUMEN DE COMANDOS RÁPIDOS
-================================================================================
-
-INICIAR ENTORNO:
-docker-compose up -d
-
-VERIFICAR ESTADO:
-docker ps
-
-PRUEBA RÁPIDA (formato_incorrecto):
-$jsonBody = '{"idSolicitud":"SOL-TEST-999","timestamp":"2025-11-09T10:00:00.000Z","estudiante":{"nombre":"María José Pérez","rut":"12.345.678-9","email":"lucasmaulenr@gmail.com"},"error":{"tipo":"formato_incorrecto","mensaje":"Formato incorrecto","detalles":{"archivoNombre":"test.docx","archivoTipo":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","motivoRechazo":"Solo PDF"}}}'
-Invoke-WebRequest -Uri "http://localhost:5678/webhook/hu005-notificacion-correccion" -Method POST -Body $jsonBody -ContentType "application/json"
-
-DETENER ENTORNO:
-docker stop convalidacion-academica-n8n-1
-
-VER LOGS (si hay error):
-docker logs convalidacion-academica-n8n-1
-
-
-================================================================================
-📚 DOCUMENTACIÓN ADICIONAL
-================================================================================
-
-UBICACIÓN DE ARCHIVOS:
-- Workflow: hu005/workflows/HU-005.json
-- Resultados: hu005/docs/HU-05_RESULTADOS_PRUEBAS.md
-- Tests: hu005/tests/
-
-EVIDENCIA DE 23 PRUEBAS EXITOSAS:
-Revisa: hu005/docs/HU-05_RESULTADOS_PRUEBAS.md
-- 23 pruebas ejecutadas
-- 100% tasa de éxito
-- Todas las plantillas validadas
-- UTF-8 funcionando perfectamente
-
-INTEGRACIÓN CON HU-001:
-Revisa: hu005/docs/INTEGRACION_HU-001_CON_HU-005.md
-
-GITHUB REPOSITORY:
-https://github.com/maudevdigital/sistema-convalidaciones-unab
-
-
-================================================================================
-✅ CHECKLIST DE VALIDACIÓN
-================================================================================
-
-Antes de considerar las pruebas como exitosas, verifica:
-
-[ ] Docker container está corriendo
-[ ] Workflow HU-005 está activo en n8n
-[ ] Webhook responde con StatusCode 200
-[ ] 4 emails recibidos en lucasmaulenr@gmail.com
-[ ] Caracteres UTF-8 correctos (María, José, Andrés, año, ñ)
-[ ] MIME types legibles (Word (DOCX), no application/vnd...)
-[ ] Cada template tiene contenido apropiado
-[ ] Links de reenvío incluidos
-[ ] Formato profesional y claro
-[ ] Sin errores en ejecuciones de n8n
-
-
-================================================================================
-💡 CONSEJOS FINALES
-================================================================================
-
-1. EJECUTA LAS PRUEBAS DE UNA EN UNA
-   - Espera 5-10 segundos entre cada prueba
-   - Verifica cada email antes de continuar
-   - Más fácil identificar problemas
-
-2. REVISA LOS LOGS EN n8n
-   - Executions muestra todo el flujo de datos
-   - Puedes ver exactamente qué pasó en cada nodo
-   - Útil para debugging
-
-3. GUARDA CAPTURAS DE PANTALLA
-   - Emails recibidos (4 templates)
-   - Panel de ejecuciones en n8n
-   - Respuestas StatusCode 200
-   - Para documentación o portfolio
-
-4. PRUEBA CON TU PROPIO EMAIL
-   - Cambia "lucasmaulenr@gmail.com" por tu email
-   - Verás los emails en tiempo real
-   - Mejor validación de funcionamiento
-
-5. EXPERIMENTA CON DIFERENTES DATOS
-   - Cambia nombres de estudiantes
-   - Prueba diferentes tipos MIME
-   - Valida robustez del sistema
-
-
-================================================================================
-📞 CONTACTO Y SOPORTE
-================================================================================
-
-Si tienes problemas que no puedes resolver con esta guía:
-
-1. Revisa el archivo de resultados:
-   hu005/docs/HU-05_RESULTADOS_PRUEBAS.md
-
-2. Revisa los logs de Docker:
-   docker logs convalidacion-academica-n8n-1
-
-3. Consulta la documentación oficial de n8n:
-   https://docs.n8n.io/
-
-4. Repositorio del proyecto:
-   https://github.com/maudevdigital/sistema-convalidaciones-unab
-
-
-================================================================================
-FIN DE LA GUÍA
-================================================================================
-
-Creado: 9 de noviembre de 2025
-Versión: 1.0
-Proyecto: Sistema de Convalidaciones Académicas UNAB
-HU-005: Notificación de Corrección de Documentos
-
-¡Éxito con tus pruebas! 🚀
