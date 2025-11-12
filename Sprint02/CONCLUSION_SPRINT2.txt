@@ -73,8 +73,8 @@ Falta:
 - 🟡 Datos anonimizados (no aplicable a este sprint)
 
 EVIDENCIAS REQUERIDAS:
-1. ✅ Documentación de flujos n8n por HU (workflow.json, HU-005.json)
-2. ✅ Registros de pruebas unitarias (PRUEBAS_HU005.md con 5 tests)
+1. ✅ Documentación de flujos n8n por HU (workflow.json, HU-05_v1.json)
+2. ✅ Registros de pruebas unitarias (HU-05_GUIA_PRUEBAS.md + HU-05_test.ps1)
 3. ✅ Criterios de integración (workflow integrado HU-001 + HU-005)
 4. 🟡 Evidencia reunión con PO Eduardo Navarro (FALTA ACTA)
 
@@ -218,7 +218,7 @@ PROPUESTA DE ITEMS PARA REFINAMIENTO:
 
 3.1 PRUEBAS UNITARIAS HU-005
 ───────────────────────────────────────────────────────────────────
-EVIDENCIA: PRUEBAS_HU005.md + 9 capturas de pantalla
+EVIDENCIA: HU-05_GUIA_PRUEBAS.md + HU-05_test.ps1 + 9 capturas
 
 CASOS EJECUTADOS:
 ┌──────┬────────────────────────┬──────────┬──────────┬───────────┐
@@ -273,10 +273,17 @@ ACCIÓN REQUERIDA:
 4.1 ARTEFACTOS TÉCNICOS
 ───────────────────────────────────────────────────────────────────
 ✅ workflow.json - Flujo integrado HU-001 + HU-005
-✅ HU-005.json - Workflow individual HU-005
+✅ HU-05_v1.json - Workflow individual HU-005
 ✅ formulario-convalidacion-unab.html - Interfaz de usuario
-✅ PRUEBAS_HU005.md - Documentación de pruebas
+✅ HU-05_GUIA_PRUEBAS.md - Documentación de pruebas
+✅ HU-05_test.ps1 - Script automatizado de pruebas
 ✅ TAREAS_TAIGA_HU-005.csv - Tareas exportadas de Taiga
+✅ HU-05_FICHA_TECNICA.md - Especificación técnica
+✅ HU-05_CASOS_PRUEBA.md - 20 casos documentados
+✅ HU-05_RESULTADOS_PRUEBAS.md - Resultados de ejecución
+✅ HU-05_RESUMEN_FINAL.md - Resumen ejecutivo
+✅ HU-05_CONFIGURACION_LOGGING.md - Config Google Sheets
+✅ HU-05_INTEGRACION_HU-001.md - Guía de integración
 
 4.2 EVIDENCIAS VISUALES
 ───────────────────────────────────────────────────────────────────

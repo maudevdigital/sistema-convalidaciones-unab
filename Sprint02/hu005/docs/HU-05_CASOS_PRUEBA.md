@@ -598,12 +598,12 @@ Validar que el sistema de notificaciones automáticas:
 
 ## 🧪 **Comandos PowerShell para Ejecución**
 
-Todos los comandos están documentados en: `PRUEBAS_HU005.md`
+Todos los comandos están documentados en: `HU-05_GUIA_PRUEBAS.md`
 
 **Ejecución rápida de todos los casos:**
 ```powershell
 # Ejecutar desde: Sprint02/hu005/tests/
-.\test-hu005-todos-templates.ps1
+.\HU-05_test.ps1 -Email "tu-email@gmail.com"
 ```
 
 ---

@@ -109,7 +109,7 @@ Implementar sistema automatizado que notifique a estudiantes cuando sus document
 ## 📊 **Entregables Completados**
 
 ### **1. Código y Workflows**
-- ✅ `workflows/HU-005.json` - Workflow n8n funcional
+- ✅ `workflows/HU-05_v1.json` - Workflow n8n funcional
 - ✅ 13 nodos configurados correctamente
 - ✅ Nomenclatura estándar aplicada
 - ✅ Comentarios en nodos complejos
@@ -119,12 +119,12 @@ Implementar sistema automatizado que notifique a estudiantes cuando sus document
 - ✅ `docs/HU-05_CASOS_PRUEBA.md` - 20 casos documentados
 - ✅ `docs/HU-05_RESULTADOS_PRUEBAS.md` - Resultados detallados
 - ✅ `docs/HU-05_RESUMEN_FINAL.md` - Este documento
-- ✅ `PRUEBAS_HU005.md` - Guía de pruebas rápidas
+- ✅ `docs/HU-05_CONFIGURACION_LOGGING.md` - Configuración Google Sheets
+- ✅ `docs/HU-05_INTEGRACION_HU-001.md` - Guía de integración
+- ✅ `HU-05_GUIA_PRUEBAS.md` - Guía de pruebas rápidas
 
 ### **3. Scripts de Prueba**
-- ✅ `tests/test-hu005-formato-incorrecto.ps1`
-- ✅ `tests/test-hu005-todos-templates.ps1`
-- ✅ `tests/test-integracion-hu001-hu005.ps1`
+- ✅ `tests/HU-05_test.ps1` - Script completo de pruebas (9 test cases)
 
 ### **4. Evidencias Visuales**
 - ✅ 9 capturas de pantalla en `registro_imagenes_hu-005/`
@@ -389,12 +389,14 @@ La integración con HU-001 funciona perfectamente, creando un flujo end-to-end c
 - `HU-05_FICHA_TECNICA.md` - Especificación técnica completa
 - `HU-05_CASOS_PRUEBA.md` - Casos de prueba detallados
 - `HU-05_RESULTADOS_PRUEBAS.md` - Resultados de ejecución
-- `PRUEBAS_HU005.md` - Guía rápida de pruebas
-- `workflows/HU-005.json` - Código del workflow
+- `HU-05_CONFIGURACION_LOGGING.md` - Configuración Google Sheets
+- `HU-05_INTEGRACION_HU-001.md` - Guía de integración
+- `HU-05_GUIA_PRUEBAS.md` - Guía rápida de pruebas
+- `workflows/HU-05_v1.json` - Código del workflow
 
 **Evidencias:**
 - `registro_imagenes_hu-005/` - 9 capturas de pantalla
-- `tests/` - 3 scripts PowerShell de prueba
+- `tests/HU-05_test.ps1` - Script completo de pruebas
 - n8n Executions - Logs de todas las ejecuciones
 
 **Taiga:**

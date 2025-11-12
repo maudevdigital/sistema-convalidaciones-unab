@@ -580,13 +580,13 @@ Tasa_Exito = Emails_Enviados / HTTP_Requests_HU005 * 100
 
 ### **Archivos Relacionados:**
 - `sistema-final/workflows/workflow.json` - Workflow integrado completo
-- `hu005/workflows/HU-005.json` - Workflow standalone HU-005
+- `hu005/workflows/HU-05_v1.json` - Workflow standalone HU-005
 - `hu005/docs/HU-05_FICHA_TECNICA.md` - Especificación HU-005
 
 ### **Nodos Clave:**
 - HU-001: `HTTP-Notificar HU-005` (línea ~380 del workflow.json)
 - HU-001: `Function - Preparar Error PDF` (línea ~350)
-- HU-005: `Webhook-HU005` (línea ~10 de HU-005.json)
+- HU-005: `Webhook-HU005` (línea ~10 de HU-05_v1.json)
 - HU-005: `Function-ValidarEntrada` (línea ~30)
 
 ---

@@ -89,7 +89,7 @@
 - ✅ Archivo mencionado: "certificado.docx"
 - ✅ Instrucciones de corrección presentes
 
-**Evidencia:** Captura `prueba01-formatoincorrecto.png` + `correccion01-formatoincorrecto.png`
+**Evidencia:** Captura `HU-05_TestCase-01_Prueba.png` + `HU-05_TestCase-01_Email.png`
 
 **Observaciones:** Funcionamiento perfecto. El template HTML se renderiza correctamente.
 
@@ -128,7 +128,7 @@
 - ✅ Indica límite: "Máximo: 10 MB"
 - ✅ Incluye herramientas sugeridas: Smallpdf, Adobe Acrobat
 
-**Evidencia:** `prueba02-tamañoexcedido.png` + `correccion02-tamañoexcedido.png`
+**Evidencia:** `HU-05_TestCase-02_Prueba.png` + `HU-05_TestCase-02_Email.png`
 
 **Observaciones:** Template específico correcto. Las sugerencias de compresión son útiles.
 
@@ -167,7 +167,7 @@
 - ✅ Sugiere regenerar el PDF
 - ✅ Incluye instrucciones de verificación
 
-**Evidencia:** `prueba03-archivocorrupto.png` + `correccion03-archivocorrupto.png`
+**Evidencia:** `HU-05_TestCase-03_Prueba.png` + `HU-05_TestCase-03_Email.png`
 
 **Observaciones:** Template claro y educativo para el usuario.
 
@@ -274,7 +274,7 @@
 - ✅ Link al formulario
 - ✅ Formato lista HTML correcto
 
-**Evidencia:** `prueba04-camposfaltantes.png` + `correccion04-camposfaltantes.png`
+**Evidencia:** `HU-05_TestCase-04_Prueba.png` + `HU-05_TestCase-04_Email.png`
 
 **Observaciones:** La lista bullet hace fácil identificar qué falta.
 
@@ -418,7 +418,7 @@ Todas las pruebas exitosas retornaron:
 - ✅ NO se envió email
 - ✅ HTTP 400 apropiado
 
-**Evidencia:** `prueba05-datosinvalidos.png`
+**Evidencia:** `HU-05_TestCase-05_Prueba.png`
 
 **Observaciones:** Validación de entrada robusta.
 
@@ -627,23 +627,23 @@ Todas las pruebas exitosas retornaron:
 
 ## 📁 **Evidencias Adjuntas**
 
-**Capturas de Pantalla:**
-- `prueba01-formatoincorrecto.png` - Test formato incorrecto
-- `prueba02-tamañoexcedido.png` - Test tamaño excedido
-- `prueba03-archivocorrupto.png` - Test archivo corrupto
-- `prueba04-camposfaltantes.png` - Test campos faltantes
-- `prueba05-datosinvalidos.png` - Test datos inválidos
+**Capturas de Pantalla - Ejecuciones:**
+- `HU-05_TestCase-01_Prueba.png` - Test formato incorrecto
+- `HU-05_TestCase-02_Prueba.png` - Test tamaño excedido
+- `HU-05_TestCase-03_Prueba.png` - Test archivo corrupto
+- `HU-05_TestCase-04_Prueba.png` - Test campos faltantes
+- `HU-05_TestCase-05_Prueba.png` - Test datos inválidos
 
-**Emails Recibidos:**
-- `correccion01-formatoincorrecto.png` - Email formato
-- `correccion02-tamañoexcedido.png` - Email tamaño
-- `correccion03-archivocorrupto.png` - Email corrupto
-- `correccion04-camposfaltantes.png` - Email campos
+**Capturas de Pantalla - Emails Recibidos:**
+- `HU-05_TestCase-01_Email.png` - Email formato incorrecto
+- `HU-05_TestCase-02_Email.png` - Email tamaño excedido
+- `HU-05_TestCase-03_Email.png` - Email archivo corrupto
+- `HU-05_TestCase-04_Email.png` - Email campos faltantes
 
 **Archivos Relacionados:**
-- `PRUEBAS_HU005.md` - Comandos de prueba
+- `HU-05_GUIA_PRUEBAS.md` - Comandos de prueba
 - `HU-05_CASOS_PRUEBA.md` - Casos detallados
-- `workflows/HU-005.json` - Workflow probado
+- `workflows/HU-05_v1.json` - Workflow probado
 
 ---
 
