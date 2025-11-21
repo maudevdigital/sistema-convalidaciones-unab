@@ -1,0 +1,67 @@
+Informe de Avance y Actividades: Sprint 2
+
+Período: 06 de Noviembre 2025 – 20 de Noviembre 2025
+Responsable: Felipe Arancibia
+Total de Horas en el período: 68.6 Horas
+Total de Horas: 179,75
+Porcentaje de cumplimiento: 83,2%
+
+1. Detalle Diario de Tareas y Tiempos
+A continuación, se desglosan las actividades realizadas día a día, con el total de horas dedicadas por jornada.
+●	Jueves, 06 de Noviembre | Total: 1.3 Horas
+○	Reunión para elegir HU (Historias de Usuario) del Sprint 2.
+●	Viernes, 07 de Noviembre | Total: 2.0 Horas
+○	Investigación de APIs utilizables para el proyecto. Principalmente que sería necesario para los developers, ya sea APIs para gmail, webhooks, google sheets, etc.
+●	Sábado, 08 de Noviembre | Total: 1.0 Hora
+○	Reunión de avance del Sprint 2. Verificamos el avance de los developers y la actualización del tablero del taiga
+●	Domingo, 09 de Noviembre | Total: 2.0 Horas
+○	Reunión de avance y análisis de problemas detectados. Continuamos con la reunión pasada, vimos el avance que tuvieron los developers de forma más específica y anotamos los errores, para investigarlos
+●	Lunes, 10 de Noviembre | Total: 5.0 Horas
+○	Resolución de problemas técnicos. Los problemas que se vieron desde la reunión del día anterior y el cómo solucionarlos
+○	Atención y respuesta a mensajes de ayuda del equipo. Apoye a mi equipo, respondiendo con las soluciones que pude encontrar
+○	Lectura de informe completo de proyecto. Volví a leer de forma completa el documento con todo lo que se nos solicitó, para poder tener mayor contexto a la hora de la investigación y la ayuda
+○	Investigación específica sobre un problema detectado en Outlook. Desde el sprint 1 tuvimos un problema con Outlook, este problema se mantuvo ya que desde el principio optamos por gmail, ya que no éramos conscientes de que el outlook era necesario
+
+●	Martes, 11 de Noviembre | Total: 6.5 Horas
+○	Apoyo técnico en la HU-005. Apoyo en testeo hasta donde esta terminada, resolución de problemas en el momento, etc.
+○	Investigación de errores varios en el desarrollo. Investigar los errores que salieron mientras se ayudaba en la HU-005
+●	Miércoles, 12 de Noviembre | Total: 5.0 Horas
+○	Apoyo técnico en la HU-002. Apoyo en testeo hasta donde está terminada, resolución de problemas en el momento, etc.
+○	Investigación de errores varios en el desarrollo. Se investigaron los errores que aparecieron mientras se ayudaba en la HU-002
+○	Reunión de avance y estudio de los entregables definidos para el Sprint 2. El grupo revisó los avances, vimos el crecimiento, que se hará próximamente y luego vimos y nos organizamos en base a lo que se nos solicita para entregar en este sprint
+●	Jueves, 13 de Noviembre | Total: 9.0 Horas
+○	Resolución crítica: Análisis y solución de problemas de autorización y credenciales HTML. La HU-008, dio muchas veces este error, por lo que pasamos la tarde analizando su error y buscando soluciones
+○	Reunión de preparación general del Sprint 2. Nos preparamos para la reunión próxima con la profesora, vimos el avance que teníamos en el momento y ordenamos el taiga
+●	Viernes, 14 de Noviembre | Total: 2.3 Horas
+○	Redacción de correo formal sobre la API de Outlook. Al no encontrar una solución para el problema de utilizar la API de Outlook, se le envió un correo a Eduardo Navarro, para ver si él nos podía ayudar con esto
+○	Lectura y revisión del informe completo del proyecto. Se volvió a revisar por completo el proyecto, para saber qué era lo solicitado y si hasta el momento, cumplimos con lo necesario
+○	Reunión breve con el profesor guía. Reunión con la profesora, donde nos guió sobre nuestro avance 
+●	Sábado, 15 de Noviembre | Total: 5.5 Horas
+○	Gestión y ordenamiento de tareas en la plataforma Taiga. Ordenamos un poco más el taiga con las actualizaciones de los developers y actualizaciones de wiki
+○	Reunión de coordinación con el Scrum Master (SM). Nos reunimos antes, para comprobar el estado del taiga, la wiki y comparar resultados con test del momento
+○	Reunión general del grupo de trabajo. Verificamos avances, cosas que hacer a futuro, opciones de mejora de lo que se tiene, etc.
+●	Domingo, 16 de Noviembre | Total: 4.0 Horas
+○	Investigación profunda sobre la documentación e integración de la API de Outlook. Al obtener la respuesta de Eduardo, donde nos dijo que aunque podíamos seguir utilizando gmail, él nos recomendaba investigar, por lo que se busco información sobre la API de outlook para el poder implementarla en nuestro flujo
+●	Lunes, 17 de Noviembre | Total: 9.0 Horas
+○	Reunión de grupo.  Verificamos avances, cosas que hacer a futuro, opciones de mejora de lo que se tiene, etc.
+○	Apoyo intensivo en el desarrollo de la HU-008. Apoyo al HU-008, ya que estaban apareciendo bastantes errores, además de hacer test intensivos en el momento para poder solucionar los errores que aparezcan 
+●	Martes, 18 de Noviembre | Total: 2.0 Horas
+○	Reunión de trabajo grupal. Los developers comentaron por encima sus HU’s, explicaron cómo funcionan y su relación con las tareas y criterios de aprobación, para los test
+●	Miércoles, 19 de Noviembre | Total: 5.0 Horas
+○	Pruebas (Testing) de la HU-008. Se testeo la HU-008, con datos inconclusos, aprobar, rechazar, intentar que no se convierta en PDF, además de probar con errores anteriores.
+●	Jueves, 20 de Noviembre | Total: 9.0 Horas
+○	Pruebas (Testing) de la HU-005. Probar enviando múltiples archivos a la par(20-30), algunos correctos otros incorrectos, enviar archivos incompletos, ingresar correos electrónicos falsos.
+○	Pruebas (Testing) de la HU-002. Probar enviando múltiples archivos a la par(20-30), qué ocurre si acepto un archivo incompleto, que ocurre si rechazo uno completo, a donde va el correo con "Revisión Adicional", utilizar datos de usuario incompletos para la actualización de la BD
+2. Resumen de Aprendizajes y Resolución de Problemas
+
+Durante este ciclo (Sprint 2), el trabajo se ha desplazado desde la planificación inicial hacia una ejecución técnica intensiva y resolución de bloqueos.
+
+Aprendizajes Técnicos y Resolución de Problemas
+
+●	Integración de APIs y Autenticación: Se dedicó un tiempo considerable (especialmente el 13 y 16 de noviembre) a investigar y solucionar problemas complejos relacionados con la API de Outlook y las credenciales HTML. El aprendizaje clave aquí fue el manejo de errores de autorización en servicios externos.
+●	Testing y QA: En la etapa final del registro (19-20 de noviembre), el enfoque cambió hacia el aseguramiento de la calidad, realizando pruebas exhaustivas en las historias de usuario HU-003, HU-005 y HU-008, asegurando que la funcionalidad cumpla con los criterios de aceptación. * Depuración (Debugging): Se invirtieron horas específicas en "Investigación de errores varios" y resolución de problemas, lo que indica un aprendizaje práctico sobre cómo identificar y parchear fallos en tiempo de ejecución.
+Gestión y Metodología Ágil
+
+●	Coordinación de Equipo: Hubo un fuerte componente de apoyo al equipo ("Apoyo HU-005", "Responder mensajes de ayuda"), demostrando habilidades de colaboración y programación en pares.
+●	Uso de Herramientas: Se consolidó el uso de Taiga para la gestión del backlog y el seguimiento de las tareas, asegurando que la presentación del proyecto estuviera organizada.
+

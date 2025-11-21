@@ -1,0 +1,463 @@
+{
+  "name": "HU-001-MEJORADO",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitud-convalidacion",
+        "responseMode": "lastNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Webhook - Recepción",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 300],
+      "id": "webhook-recepcion",
+      "webhookId": "0bb0b401-c93d-44db-b804-48ea7bd064f1"
+    },
+    {
+      "parameters": {
+        "functionCode": "// HU-01: Validación de campos requeridos\nconst requiredFields = ['nombre', 'rut', 'carrera', 'asignatura', 'institucionOrigen'];\nconst errors = [];\nconst data = $input.item.json.body || $input.item.json;\n\n// Validar campos obligatorios\nfor (const field of requiredFields) {\n  if (!data[field] || data[field].toString().trim() === '') {\n    errors.push(`Campo requerido: ${field}`);\n  }\n}\n\n// Validar que haya archivo\nif (!data.file && !data.documentos) {\n  errors.push('Campo requerido: archivo PDF');\n}\n\n// Si hay errores, retornar respuesta de error\nif (errors.length > 0) {\n  return {\n    json: {\n      success: false,\n      errors: errors,\n      message: 'Faltan campos obligatorios',\n      code: 400\n    }\n  };\n}\n\n// Si todo está bien, procesar y agregar metadatos\nconst result = Object.assign({}, data, {\n  success: true,\n  documentosCompletos: true,\n  fechaSolicitud: new Date().toISOString(),\n  id: 'SOL-' + data.rut.replace(/[^0-9]/g, '') + '-' + Date.now(),\n  estado: 'Recibida',\n  // Preservar datos del archivo\n  fileName: data.file ? data.file.filename : data.documentos,\n  fileData: data.file ? data.file.data : null,\n  fileMimeType: data.file ? data.file.mimeType : 'application/pdf'\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Validar Campos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "id": "validar-campos"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Validar formato de RUT chileno\nconst data = $input.item.json;\n\nfunction validarRUT(rut) {\n  if (!rut) return false;\n  \n  // Eliminar puntos y guión\n  rut = rut.toString().replace(/\\./g, '').replace(/-/g, '').toUpperCase();\n  \n  // Verificar formato básico (7-8 dígitos + verificador)\n  if (!/^[0-9]{7,8}[0-9K]$/.test(rut)) {\n    return false;\n  }\n  \n  // Separar número y dígito verificador\n  const cuerpo = rut.slice(0, -1);\n  const dv = rut.slice(-1);\n  \n  // Calcular dígito verificador\n  let suma = 0;\n  let multiplicador = 2;\n  \n  for (let i = cuerpo.length - 1; i >= 0; i--) {\n    suma += parseInt(cuerpo[i]) * multiplicador;\n    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;\n  }\n  \n  const dvEsperado = 11 - (suma % 11);\n  const dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();\n  \n  return dv === dvCalculado;\n}\n\n// Validar si existe el campo success\nif (!data.success) {\n  return { json: data };\n}\n\nconst rutValido = validarRUT(data.rut);\n\nif (!rutValido) {\n  return {\n    json: {\n      success: false,\n      errors: ['RUT inválido: ' + data.rut],\n      message: 'El RUT proporcionado no es válido',\n      code: 400,\n      detalles: 'Formato esperado: 12.345.678-9 o 12345678-9'\n    }\n  };\n}\n\n// RUT válido, continuar\nreturn { json: data };"
+      },
+      "name": "Function - Validar RUT",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "id": "validar-rut"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Validar formato de email\nconst data = $input.item.json;\n\nfunction validarEmail(email) {\n  if (!email || email.trim() === '') {\n    return true; // Email es opcional\n  }\n  \n  // Regex para validar email\n  const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n  if (!emailRegex.test(email)) {\n    return false;\n  }\n  \n  // Validar longitud\n  if (email.length > 254) {\n    return false;\n  }\n  \n  return true;\n}\n\n// Validar si existe el campo success\nif (!data.success) {\n  return { json: data };\n}\n\nconst emailValido = validarEmail(data.email);\n\nif (!emailValido) {\n  return {\n    json: {\n      success: false,\n      errors: ['Email inválido: ' + data.email],\n      message: 'El email proporcionado no es válido',\n      code: 400\n    }\n  };\n}\n\n// Email válido, continuar\nreturn { json: data };"
+      },
+      "name": "Function - Validar Email",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "id": "validar-email"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.success}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF - Validación OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "id": "if-validacion-ok"
+    },
+    {
+      "parameters": {
+        "functionCode": "// HU-01: Validar formato de documentos PDF\nconst data = $input.item.json;\nconst fileName = data.fileName || data.documentos || '';\nlet pdfsOk = true;\nlet badFiles = [];\n\n// Validar extensión\nif (typeof fileName === 'string') {\n  if (!fileName.toLowerCase().endsWith('.pdf')) {\n    pdfsOk = false;\n    badFiles.push(fileName);\n  }\n} else if (Array.isArray(fileName)) {\n  for (const doc of fileName) {\n    const name = doc.fileName || doc.name || doc;\n    if (typeof name === 'string' && !name.toLowerCase().endsWith('.pdf')) {\n      pdfsOk = false;\n      badFiles.push(name);\n    }\n  }\n}\n\n// Validar tipo MIME si existe\nif (data.fileMimeType && data.fileMimeType !== 'application/pdf') {\n  pdfsOk = false;\n  badFiles.push(`Tipo MIME incorrecto: ${data.fileMimeType}`);\n}\n\nconst result = Object.assign({}, data, {\n  pdfsOk: pdfsOk,\n  badFiles: badFiles,\n  validacionPDF: pdfsOk ? 'Documentos válidos' : 'Documentos inválidos'\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Validar PDF",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 200],
+      "id": "validar-pdf"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Validar tamaño del archivo PDF (max 10MB)\nconst data = $input.item.json;\nconst MAX_SIZE_MB = 10;\nconst MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;\n\nlet sizeOk = true;\nlet sizeError = '';\n\n// Si tenemos datos del archivo\nif (data.fileData) {\n  // Calcular tamaño del base64\n  const base64Length = data.fileData.length;\n  const fileSizeBytes = (base64Length * 3) / 4;\n  \n  if (fileSizeBytes > MAX_SIZE_BYTES) {\n    sizeOk = false;\n    sizeError = `Archivo muy grande: ${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB. Máximo: ${MAX_SIZE_MB}MB`;\n  }\n  \n  // Agregar tamaño al objeto\n  data.fileSize = fileSizeBytes;\n  data.fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);\n}\n\nconst result = Object.assign({}, data, {\n  sizeOk: sizeOk,\n  sizeError: sizeError,\n  validacionTamaño: sizeOk ? 'Tamaño válido' : 'Archivo muy grande'\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Validar Tamaño",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1560, 200],
+      "id": "validar-tamano"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.pdfsOk && $json.sizeOk}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF - PDF Válido",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1780, 200],
+      "id": "if-pdf-valido"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convertir base64 a binario para Google Drive\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  \n  // Obtener datos del archivo\n  const base64Data = data.fileData || (data.file ? data.file.data : null);\n  const fileName = data.fileName || (data.file ? data.file.filename : 'documento.pdf');\n  const mimeType = data.fileMimeType || (data.file ? data.file.mimeType : 'application/pdf');\n  \n  if (!base64Data) {\n    throw new Error('No se encontraron datos del archivo para subir a Drive');\n  }\n  \n  // Convertir base64 a buffer binario\n  const binaryBuffer = Buffer.from(base64Data, 'base64');\n  \n  // Crear objeto con datos binarios para Google Drive\n  results.push({\n    json: data,\n    binary: {\n      data: {\n        data: binaryBuffer.toString('base64'),\n        mimeType: mimeType,\n        fileName: fileName,\n        fileExtension: 'pdf'\n      }\n    }\n  });\n}\n\nreturn results;"
+      },
+      "name": "Code - Convertir a Binario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 100],
+      "id": "convertir-binario",
+      "notes": "Convierte el archivo base64 del JSON a formato binario para Google Drive"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "folderId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "name": "={{$json.id}}_{{$json.fileName}}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "name": "Drive - Subir PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2000, 100],
+      "id": "drive-subir-pdf",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PENDIENTE",
+          "name": "Google Drive account"
+        }
+      },
+      "notes": "CONFIGURAR: Seleccionar carpeta de Drive y credenciales"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Obtener link del archivo subido a Drive y preservar todos los datos\nconst driveData = $input.item.json;\nconst originalData = $('IF - PDF Válido').item.json;\n\n// Log para debug\nconsole.log('Drive Data:', driveData);\nconsole.log('Original Data ID:', originalData.id);\n\n// El nodo de Google Drive retorna información del archivo\nconst fileId = driveData.id;\nconst fileName = driveData.name;\nconst webViewLink = `https://drive.google.com/file/d/${fileId}/view`;\nconst webContentLink = `https://drive.google.com/uc?id=${fileId}&export=download`;\n\n// Combinar con datos originales, PRESERVANDO el ID de solicitud\nconst result = Object.assign({}, originalData, {\n  driveFileId: fileId,\n  driveFileName: fileName,\n  linkDrive: webViewLink,\n  linkDirecto: webContentLink\n});\n\nconsole.log('Resultado con ID:', result.id);\n\nreturn {\n  json: result\n};"
+      },
+      "name": "Function - Preparar Link Drive",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2220, 100],
+      "id": "preparar-link-drive"
+    },
+    {
+      "parameters": {
+        "functionCode": "// HU-01: Preparar datos LIMPIOS para Solicitudes\nconst data = $input.item.json;\n\nconsole.log('Preparar Solicitudes - ID:', data.id);\n\nreturn {\n  json: {\n    id: data.id || 'ERROR-SIN-ID',\n    fecha: data.fechaSolicitud,\n    estudiante: data.nombre,\n    rut: data.rut,\n    carrera: data.carrera,\n    asignatura: data.asignatura,\n    institucionOrigen: data.institucionOrigen,\n    documentos: data.fileName || data.documentos,\n    linkDrive: data.linkDrive || 'Pendiente',\n    driveFileId: data.driveFileId || '',\n    tamanoMB: data.fileSizeMB || '',\n    email: data.email || '',\n    estado: data.estado\n  }\n};"
+      },
+      "name": "Preparar Datos Solicitudes",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2440, 100],
+      "id": "preparar-solicitudes"
+    },
+    {
+      "parameters": {
+        "functionCode": "// HU-01: Preparar datos LIMPIOS para Log\nconst data = $input.item.json;\n\nreturn {\n  json: {\n    timestamp: data.fechaSolicitud,\n    id: data.id,\n    evento: 'Solicitud Recibida',\n    estudiante: data.nombre,\n    estado: data.estado,\n    detalles: `HU-01: Recepción exitosa - Asignatura: ${data.asignatura} - Institución: ${data.institucionOrigen} - Archivo: ${data.fileName || data.documentos}`\n  }\n};"
+      },
+      "name": "Preparar Datos Log",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2000, 200],
+      "id": "preparar-log"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1FWnWVXKy8mKIbO2JloHav9y7rYJYpVIqM1qcVhtg0yY",
+          "mode": "list",
+          "cachedResultName": "Sistema Convalidaciones Académicas"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 392534325,
+          "mode": "list",
+          "cachedResultName": "Solicitudes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$json.id}}",
+            "fecha": "={{$json.fecha}}",
+            "estudiante": "={{$json.estudiante}}",
+            "rut": "={{$json.rut}}",
+            "carrera": "={{$json.carrera}}",
+            "asignatura": "={{$json.asignatura}}",
+            "institucionOrigen": "={{$json.institucionOrigen}}",
+            "documentos": "={{$json.documentos}}",
+            "linkDrive": "={{$json.linkDrive}}",
+            "driveFileId": "={{$json.driveFileId}}",
+            "tamanoMB": "={{$json.tamanoMB}}",
+            "email": "={{$json.email}}",
+            "estado": "={{$json.estado}}"
+          },
+          "matchingColumns": ["id"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "DB-Registro",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2660, 100],
+      "id": "db-registro",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZM6AB0udQM5h68On",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1FWnWVXKy8mKIbO2JloHav9y7rYJYpVIqM1qcVhtg0yY",
+          "mode": "list",
+          "cachedResultName": "Sistema Convalidaciones Académicas"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{$json.timestamp}}",
+            "id": "={{$json.id}}",
+            "evento": "={{$json.evento}}",
+            "estudiante": "={{$json.estudiante}}",
+            "estado": "={{$json.estado}}",
+            "detalles": "={{$json.detalles}}"
+          },
+          "matchingColumns": ["id"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "DB-Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2220, 200],
+      "id": "db-log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZM6AB0udQM5h68On",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$json.email || 'estudiante@ejemplo.com'}}",
+        "subject": "=Confirmación de Recepción - Solicitud {{$json.id}}",
+        "text": "=Estimado/a {{$json.nombre}},\n\nHemos recibido correctamente su solicitud de convalidación con los siguientes datos:\n\n📋 DATOS DE LA SOLICITUD:\n• ID de Solicitud: {{$json.id}}\n• Fecha de Recepción: {{$json.fechaSolicitud}}\n• Asignatura: {{$json.asignatura}}\n• Institución de Origen: {{$json.institucionOrigen}}\n• Estado: {{$json.estado}}\n\n📄 DOCUMENTO ADJUNTO:\n• Nombre: {{$json.fileName}}\n\n📅 PRÓXIMOS PASOS:\n1. Su solicitud será revisada por la Dirección Académica\n2. Recibirá una notificación cuando haya una decisión\n3. El proceso puede tomar entre 5-10 días hábiles\n\n💡 Para consultas, puede contactarnos indicando su ID de solicitud: {{$json.id}}\n\nSaludos cordiales,\nSistema Automatizado de Convalidaciones\nUniversidad Andrés Bello",
+        "options": {}
+      },
+      "name": "Email-Confirmación",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 300],
+      "id": "email-confirmacion",
+      "credentials": {
+        "smtp": {
+          "id": "5PwfuVROJgdj9gpi",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$json.email || 'estudiante@ejemplo.com'}}",
+        "subject": "❌ Error en Documentos - Solicitud de Convalidación",
+        "text": "=Estimado/a {{$json.nombre}},\n\nHemos detectado un problema con los documentos adjuntos en su solicitud:\n\n⚠️ PROBLEMAS DETECTADOS:\n• El archivo enviado no es un PDF válido o excede el tamaño permitido\n\n📋 REQUISITOS DE DOCUMENTOS:\n✓ Solo se aceptan archivos en formato PDF\n✓ Tamaño máximo: 10 MB\n✓ Asegúrese de que todos los documentos tengan extensión .pdf\n✓ El archivo no debe estar corrupto o protegido\n\n🔄 ACCIÓN REQUERIDA:\nPor favor, reenvíe su solicitud con los documentos en formato correcto a través de:\n{{$json.webhookUrl}}\n\nSaludos cordiales,\nSistema Automatizado de Convalidaciones\nUniversidad Andrés Bello",
+        "options": {}
+      },
+      "name": "Email-Error PDF",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 400],
+      "id": "email-error-pdf",
+      "credentials": {
+        "smtp": {
+          "id": "5PwfuVROJgdj9gpi",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Preparar log de error de PDF\nconst data = $input.item.json;\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    id: data.id || 'ERROR-' + Date.now(),\n    evento: 'Error en Documento PDF',\n    estudiante: data.nombre,\n    estado: 'Rechazada - PDF Inválido',\n    detalles: `Problemas: ${data.badFiles ? data.badFiles.join(', ') : 'Formato no PDF'}. ${data.sizeError || ''}`\n  }\n};"
+      },
+      "name": "Function - Log Error PDF",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2220, 400],
+      "id": "log-error-pdf"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Respuesta de error cuando el PDF es inválido\nconst data = $input.item.json;\n\nreturn {\n  json: {\n    success: false,\n    message: 'Documento PDF no válido',\n    errors: data.badFiles || ['Archivo no es PDF'],\n    detalles: data.sizeError || 'Solo se aceptan archivos PDF de máximo 10MB',\n    id: data.id,\n    code: 400\n  }\n};"
+      },
+      "name": "Function - Error PDF Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2440, 400],
+      "id": "error-pdf-response"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Preparar log de error de validación\nconst data = $input.item.json;\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    id: 'ERROR-' + Date.now(),\n    evento: 'Error de Validación',\n    estudiante: data.nombre || 'Desconocido',\n    estado: 'Rechazada',\n    detalles: `Errores: ${data.errors ? data.errors.join(', ') : 'Error desconocido'}. ${data.detalles || ''}`\n  }\n};"
+      },
+      "name": "Function - Log Error Validación",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 400],
+      "id": "log-error-validacion"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Respuesta de error para solicitudes inválidas\nconst data = $input.item.json;\n\nreturn {\n  json: {\n    success: false,\n    message: data.message || 'Error en la validación',\n    errors: data.errors || ['Error desconocido'],\n    detalles: data.detalles || 'Verifique los campos requeridos',\n    code: data.code || 400\n  }\n};"
+      },
+      "name": "Function-Error Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1560, 400],
+      "id": "error-validacion-response"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sincronizar y preservar el ID original generado al inicio\nconst allItems = $input.all();\n\nconsole.log('=== SINCRONIZAR - Total items:', allItems.length);\n\n// PASO 1: Buscar el item que tiene el ID original (formato SOL-XXXXX-timestamp)\nlet itemConIdOriginal = null;\nlet itemConDatosCompletos = null;\n\nfor (const item of allItems) {\n  const id = item.json.id;\n  \n  console.log('Item analizado:', {\n    id: id,\n    tiene_id: !!id,\n    formato_correcto: id && id.startsWith('SOL-') && id.split('-').length === 3,\n    tiene_linkDrive: !!item.json.linkDrive,\n    campos_totales: Object.keys(item.json).length\n  });\n  \n  // Verificar si este item tiene el ID en formato correcto\n  if (id && id.startsWith('SOL-') && id.split('-').length === 3) {\n    itemConIdOriginal = item;\n    console.log('✅ ID ORIGINAL ENCONTRADO:', id);\n  }\n  \n  // También guardar el item con más campos (backup)\n  if (!itemConDatosCompletos || Object.keys(item.json).length > Object.keys(itemConDatosCompletos.json).length) {\n    itemConDatosCompletos = item;\n  }\n}\n\n// PASO 2: Fusionar datos\nif (itemConIdOriginal && itemConDatosCompletos && itemConIdOriginal !== itemConDatosCompletos) {\n  // Combinar: ID del original + otros datos del más completo\n  console.log('🔀 Fusionando datos de múltiples items');\n  \n  const merged = {\n    json: {\n      ...itemConDatosCompletos.json,\n      id: itemConIdOriginal.json.id,\n      fechaSolicitud: itemConIdOriginal.json.fechaSolicitud || itemConDatosCompletos.json.fechaSolicitud\n    }\n  };\n  \n  console.log('=== ITEM FINAL - ID:', merged.json.id);\n  return merged;\n}\n\n// PASO 3: Si encontramos el ID original, usarlo\nif (itemConIdOriginal) {\n  console.log('=== USANDO ITEM CON ID ORIGINAL:', itemConIdOriginal.json.id);\n  return itemConIdOriginal;\n}\n\n// PASO 4: Si no, usar el más completo\nconsole.warn('⚠️ No se encontró ID original, usando item más completo');\nconsole.log('=== ITEM SELECCIONADO (backup) - ID:', itemConDatosCompletos?.json.id);\nreturn itemConDatosCompletos || $input.last();"
+      },
+      "name": "Sincronizar - Preservar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2880, 200],
+      "id": "sincronizar-datos"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Respuesta exitosa tras procesar la solicitud\nconst data = $input.item.json;\n\nconsole.log('===== FUNCTION SUCCESS RESPONSE =====');\nconsole.log('Datos completos recibidos:', JSON.stringify(data, null, 2));\n\n// Buscar el ID en TODAS las ubicaciones posibles con prioridad\nlet solicitudId = null;\n\n// Buscar primero en ubicaciones directas\nif (data.id) solicitudId = data.id;\nelse if (data.solicitudId) solicitudId = data.solicitudId;\nelse if (data.ID) solicitudId = data.ID;\nelse if (data.idSolicitud) solicitudId = data.idSolicitud;\nelse if (data.solicitud_id) solicitudId = data.solicitud_id;\n\n// Si no encontró, buscar en objeto sheets\nif (!solicitudId && data.sheets) {\n  if (data.sheets.id) solicitudId = data.sheets.id;\n  else if (data.sheets.solicitudId) solicitudId = data.sheets.solicitudId;\n}\n\n// Si aún no encontró, buscar en range\nif (!solicitudId && data.range) {\n  const match = data.range.match(/\\d+/);\n  if (match) {\n    solicitudId = `SOL-${match[0]}`;\n  }\n}\n\n// Último recurso: generar uno temporal\nif (!solicitudId) {\n  const timestamp = Date.now();\n  solicitudId = `SOL-TEMP-${timestamp}`;\n  console.warn('⚠️ NO SE ENCONTRÓ ID - Generando temporal:', solicitudId);\n}\n\nconsole.log('ID FINAL seleccionado:', solicitudId);\nconsole.log('=====================================');\n\nreturn {\n  json: {\n    success: true,\n    message: 'Solicitud recibida y procesada correctamente',\n    id: solicitudId,\n    fechaSolicitud: data.fechaSolicitud || data.fecha || new Date().toISOString(),\n    estado: data.estado || 'Recibida',\n    linkDrive: data.linkDrive || '',\n    driveFileId: data.driveFileId || '',\n    proximosPasos: 'Recibirá notificación por email con el estado de su solicitud',\n    tiempoEstimado: '5-10 días hábiles',\n    code: 200\n  }\n};"
+      },
+      "name": "Function-Success Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [3100, 200],
+      "id": "success-response"
+    }
+  ],
+  "connections": {
+    "Webhook - Recepción": {
+      "main": [[{"node": "Function - Validar Campos", "type": "main", "index": 0}]]
+    },
+    "Function - Validar Campos": {
+      "main": [[{"node": "Function - Validar RUT", "type": "main", "index": 0}]]
+    },
+    "Function - Validar RUT": {
+      "main": [[{"node": "Function - Validar Email", "type": "main", "index": 0}]]
+    },
+    "Function - Validar Email": {
+      "main": [[{"node": "IF - Validación OK", "type": "main", "index": 0}]]
+    },
+    "IF - Validación OK": {
+      "main": [
+        [{"node": "Function - Validar PDF", "type": "main", "index": 0}],
+        [{"node": "Function - Log Error Validación", "type": "main", "index": 0}]
+      ]
+    },
+    "Function - Validar PDF": {
+      "main": [[{"node": "Function - Validar Tamaño", "type": "main", "index": 0}]]
+    },
+    "Function - Validar Tamaño": {
+      "main": [[{"node": "IF - PDF Válido", "type": "main", "index": 0}]]
+    },
+    "IF - PDF Válido": {
+      "main": [
+        [
+          {"node": "Code - Convertir a Binario", "type": "main", "index": 0},
+          {"node": "Preparar Datos Log", "type": "main", "index": 0},
+          {"node": "Email-Confirmación", "type": "main", "index": 0}
+        ],
+        [{"node": "Email-Error PDF", "type": "main", "index": 0}]
+      ]
+    },
+    "Code - Convertir a Binario": {
+      "main": [[{"node": "Drive - Subir PDF", "type": "main", "index": 0}]]
+    },
+    "Drive - Subir PDF": {
+      "main": [[{"node": "Function - Preparar Link Drive", "type": "main", "index": 0}]]
+    },
+    "Function - Preparar Link Drive": {
+      "main": [[{"node": "Preparar Datos Solicitudes", "type": "main", "index": 0}]]
+    },
+    "Preparar Datos Solicitudes": {
+      "main": [[{"node": "DB-Registro", "type": "main", "index": 0}]]
+    },
+    "Preparar Datos Log": {
+      "main": [[{"node": "DB-Log", "type": "main", "index": 0}]]
+    },
+    "DB-Registro": {
+      "main": [[{"node": "Sincronizar - Preservar Datos", "type": "main", "index": 0}]]
+    },
+    "DB-Log": {
+      "main": [[{"node": "Sincronizar - Preservar Datos", "type": "main", "index": 0}]]
+    },
+    "Email-Confirmación": {
+      "main": [[{"node": "Sincronizar - Preservar Datos", "type": "main", "index": 0}]]
+    },
+    "Email-Error PDF": {
+      "main": [[{"node": "Function - Log Error PDF", "type": "main", "index": 0}]]
+    },
+    "Function - Log Error PDF": {
+      "main": [
+        [
+          {"node": "DB-Log", "type": "main", "index": 0},
+          {"node": "Function - Error PDF Response", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Function - Log Error Validación": {
+      "main": [
+        [
+          {"node": "DB-Log", "type": "main", "index": 0},
+          {"node": "Function-Error Response", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Sincronizar - Preservar Datos": {
+      "main": [[{"node": "Function-Success Response", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "hu01-v3-completo-mejorado",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e12e9c5344554c6d82d3bb4081a33310a0487cdff8bb15f5c462553d0b81d0e0"
+  },
+  "tags": []
+}

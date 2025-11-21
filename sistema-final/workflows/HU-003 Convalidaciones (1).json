@@ -1,0 +1,943 @@
+{
+  "name": "HU-003 Convalidaciones",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitud-convalidacion",
+        "options": {}
+      },
+      "name": "Webhook - Recepción",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        176
+      ],
+      "id": "d31751dc-6deb-4b47-89f5-fdf79f20d335",
+      "webhookId": "8fb4f1b8-4048-477c-9f27-9226aef1a9ee"
+    },
+    {
+      "parameters": {
+        "functionCode": "const requiredFields = ['nombre', 'carrera', 'materias', 'documentos', 'estudianteEmail', 'directorEmail'];\nconst errors = [];\n\nfor (const field of requiredFields) {\n  if (!$input.item.json.body[field]) {\n    errors.push(`Campo requerido: ${field}`);\n  }\n}\n\nif (errors.length > 0) {\n  return {\n    json: {\n      ...$input.item.json.body,\n      validationSuccess: false,\n      errors: errors\n    }\n  };\n}\n\nreturn {\n  json: {\n    ...$input.item.json.body,\n    validationSuccess: true,\n    fechaSolicitud: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Function - Validar Campos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        176
+      ],
+      "id": "b80e6efa-db17-4781-9536-7e4ba12364be"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.validationSuccess}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF - Validación OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        176
+      ],
+      "id": "f0060b6b-7c69-4eef-8758-5d30d5f0d0dd"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1OOUUGBwn0NBfTxIOu_KsD1wxlvrypfwzSgx3Sf6VEws",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Hoja 1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID_Solicitud": "={{$json.ID_Solicitud}}",
+            "NombreCompleto": "={{$json.nombre}}",
+            "RUT": "={{$json.RUT}}",
+            "Carrera": "={{$json.carrera}}",
+            "Asignatura": "={{$json.Asignatura}}",
+            "Estado": "Pendiente",
+            "estudianteEmail": "={{$json.estudianteEmail}}",
+            "InstitucionOrigen": "UNAB"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID_Solicitud",
+              "displayName": "ID_Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NombreCompleto",
+              "displayName": "NombreCompleto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RUT",
+              "displayName": "RUT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Carrera",
+              "displayName": "Carrera",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Asignatura",
+              "displayName": "Asignatura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "InstitucionOrigen",
+              "displayName": "InstitucionOrigen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estudianteEmail",
+              "displayName": "estudianteEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "DB - Registro en Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        32
+      ],
+      "id": "345a520a-45fd-4890-b437-aa33de455d17",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZYL9RcwzLIp7ONbM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "name": "Storage - Guardar en Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        320,
+        32
+      ],
+      "id": "6b6d92bb-0905-4c5d-bce2-8c2760ab54cf",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Tw7gns3t47nRK12n",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "felipevergararodriguez@gmail.com",
+        "toEmail": "={{ $('Webhook - Recepción').item.json.body.directorEmail }}",
+        "subject": "Nueva Solicitud de Convalidación para Revisión",
+        "html": "=<p>Hola,</p>\n<p>Se ha recibido una nueva solicitud de convalidación del estudiante <strong>{{$('Webhook - Recepción').item.json.body.nombre}}</strong> para la carrera de <strong>{{$('Webhook - Recepción').item.json.body.carrera}}</strong>.</p>\n<p>Por favor, revisa los documentos y toma una decisión haciendo clic en uno de los siguientes enlaces:</p>\n<ul>\n    <li><a href=\"http://localhost:5678/webhook/decision-director?decision=aprobada&solicitudId={{$('Webhook - Recepción').item.json.body.ID_Solicitud}}\"><strong>Aprobar Solicitud</strong></a></li>\n</ul>\n<hr>\n<p><strong>Opciones de Rechazo:</strong></p>\n<ul>\n    <li><a href=\"http://localhost:5678/webhook/decision-director?decision=rechazada&motivo=Documentacion Incompleta&solicitudId={{$('Webhook - Recepción').item.json.body.ID_Solicitud}}\"><strong>Rechazar (Documentación Incompleta)</strong></a></li>\n    <li><a href=\"http://localhost:5678/webhook/decision-director?decision=rechazada&motivo=No Cumple Requisitos&solicitudId={{$('Webhook - Recepción').item.json.body.ID_Solicitud}}\"><strong>Rechazar (No Cumple Requisitos)</strong></a></li>\n</ul>\n<p>Gracias,<br>Sistema de Automatización Académica.</p>",
+        "options": {
+          "attachments": "=data"
+        }
+      },
+      "name": "Email - Notificación al Director",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        32
+      ],
+      "id": "deced700-bdfd-412f-a9f1-6f69086d360b",
+      "webhookId": "6c5f86ae-660a-4810-bba5-2f77dc2f3cf3",
+      "credentials": {
+        "smtp": {
+          "id": "uX1BUTngf0zd8IFF",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "decision-director",
+        "options": {}
+      },
+      "name": "Webhook - Decisión",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        512
+      ],
+      "id": "acdc07d1-83a9-4bb9-b6ec-26740bc8471a",
+      "webhookId": "49443d5b-132d-4c24-946d-45fda9ea6ad1"
+    },
+    {
+      "parameters": {
+        "functionCode": "const query = $input.item.json.query || {};\n\n// Forzamos la decisión a minúsculas para evitar errores\nconst decision = (query.decision || '').toLowerCase();\nconst solicitudId = query.solicitudId || null;\nconst motivo = query.motivo || 'No especificado';\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    decision: decision,\n    solicitudId: solicitudId,\n    motivoRechazo: motivo,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Function - Procesar Decisión",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        512
+      ],
+      "id": "94b83d7d-2d50-4c6e-8d7a-1325578aed88"
+    },
+    {
+      "parameters": {
+        "functionCode": "const datosSolicitud = $('DB - Obtener Fila Actualizada').item.json;\nconst nombreEstudiante = datosSolicitud.NombreCompleto;\nconst rutEstudiante = datosSolicitud.RUT || 'No disponible';\nconst asignatura = datosSolicitud.Asignatura || 'No especificada';\nconst carrera = datosSolicitud.Carrera;\n\nconst html = `\n  <html>\n    <head><style>body { font-family: sans-serif; padding: 20px; }</style></head>\n    <body>\n      <h1>ACTA DE RESOLUCIÓN DE CONVALIDACIÓN</h1>\n      <p><strong>Fecha de Resolución:</strong> ${new Date().toLocaleDateString()}</p>\n      <p><strong>Nombre del Estudiante:</strong> ${nombreEstudiante}</p>\n      <p><strong>RUT:</strong> ${rutEstudiante}</p>\n      <hr>\n      <p>Por medio de la presente, se notifica que la resolución de su solicitud de convalidación para la asignatura <strong>${asignatura}</strong> es: <strong>APROBADA</strong>.</p>\n      <br><br><p>Atentamente,<br>Director de Carrera de ${carrera}</p>\n    </body>\n  </html>\n`;\n\n// Pasamos el HTML como texto al siguiente nodo\nreturn { json: { ...$json, actaHtml: html } };"
+      },
+      "name": "Crear HTML del Acta",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        240,
+        384
+      ],
+      "id": "0798965a-e595-48e8-9979-f053770daac0"
+    },
+    {
+      "parameters": {
+        "fromEmail": "felipevergararodriguez@gmail.com",
+        "toEmail": "={{ $('DB - Obtener Fila Actualizada').item.json.estudianteEmail }}",
+        "subject": "Solicitud Aceptada - Convalidación",
+        "html": "=<p>Estimado/a {{$('DB - Obtener Fila Actualizada').item.json.NombreCompleto}},</p>\n<p>¡Felicitaciones!</p>\n<p>Nos complace informarte que tu solicitud de convalidación ha sido <strong>APROBADA</strong>.</p>\n<p>Se adjunta el acta de resolución oficial con todos los detalles.</p>\n<br>\n<p>Atentamente,<br>Administración Académica.</p>",
+        "options": {
+          "attachments": "=data"
+        }
+      },
+      "name": "Email - Estudiante Aceptada",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        384
+      ],
+      "id": "b74200f7-a944-4958-9f8a-5bbcae25e747",
+      "webhookId": "cfede140-b886-41ca-b085-be3fc8f2a673",
+      "credentials": {
+        "smtp": {
+          "id": "uX1BUTngf0zd8IFF",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "felipevergararodriguez@gmail.com",
+        "toEmail": "={{ $('DB - Obtener Fila Actualizada').item.json.estudianteEmail }}",
+        "subject": "Solicitud Rechazada - Convalidación",
+        "html": "=<p>Estimado/a {{$('DB - Obtener Fila Actualizada').item.json.NombreCompleto}},</p>\n<p>Lamentamos informarte que tu solicitud de convalidación ha sido <strong>RECHAZADA</strong>.</p>\n<p><strong>Motivo:</strong> {{$json.motivoRechazo}}</p>\n<p>Se adjunta el acta de resolución con los detalles.</p>\n<br>\n<p>Atentamente,<br>Administración Académica.</p>",
+        "options": {
+          "attachments": "=data"
+        }
+      },
+      "name": "Email - Estudiante Rechazada",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        528
+      ],
+      "id": "e72d37f1-b225-4a0b-b18e-3f21adebf2e2",
+      "webhookId": "c8652aea-fcec-4651-afee-426806d493c8",
+      "credentials": {
+        "smtp": {
+          "id": "uX1BUTngf0zd8IFF",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Faltan datos en la solicitud"
+      },
+      "name": "Stop and Error",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        224
+      ],
+      "id": "2849edbd-fc02-4ae7-b814-41d136cbf8db"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        144,
+        32
+      ],
+      "id": "672d76f0-1a98-4475-a6a0-8882e032b6be",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Estado.toLowerCase().trim() }}",
+                    "rightValue": "aprobada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a29868a9-ef83-4809-96e2-6db0ad89d3e9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9ab676c9-7048-4b5a-84ad-99c57c3beaf8",
+                    "leftValue": "={{ $json.Estado.toLowerCase().trim() }}",
+                    "rightValue": "rechazada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        48,
+        512
+      ],
+      "id": "61631d55-6176-4e6e-9e59-aa786b2a5ec3",
+      "name": "Switch - Decision"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1OOUUGBwn0NBfTxIOu_KsD1wxlvrypfwzSgx3Sf6VEws",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Hoja 1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID_Solicitud": "={{ $('Function - Procesar Decisión').item.json.solicitudId }}",
+            "Estado": "={{ $('Function - Procesar Decisión').item.json.decision }}",
+            "InstitucionOrigen": ""
+          },
+          "matchingColumns": [
+            "ID_Solicitud"
+          ],
+          "schema": [
+            {
+              "id": "ID_Solicitud",
+              "displayName": "ID_Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NombreCompleto",
+              "displayName": "NombreCompleto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RUT",
+              "displayName": "RUT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Carrera",
+              "displayName": "Carrera",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Asignatura",
+              "displayName": "Asignatura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "InstitucionOrigen",
+              "displayName": "InstitucionOrigen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estudianteEmail",
+              "displayName": "estudianteEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -272,
+        512
+      ],
+      "id": "310bb2b7-866a-4cd0-969b-eba24bd00378",
+      "name": "DB - Actualizar Estado",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZYL9RcwzLIp7ONbM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OOUUGBwn0NBfTxIOu_KsD1wxlvrypfwzSgx3Sf6VEws",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OOUUGBwn0NBfTxIOu_KsD1wxlvrypfwzSgx3Sf6VEws/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID_Solicitud",
+              "lookupValue": "={{ $('Function - Procesar Decisión').item.json.solicitudId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -112,
+        512
+      ],
+      "id": "5551e815-3c00-44ab-a838-3479555e5601",
+      "name": "DB - Obtener Fila Actualizada",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZYL9RcwzLIp7ONbM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const datosSolicitud = $('DB - Obtener Fila Actualizada').item.json;\n\nconst nombreEstudiante = datosSolicitud.NombreCompleto;\nconst rutEstudiante = datosSolicitud.RUT || 'No disponible';\nconst asignatura = datosSolicitud.Asignatura || 'No especificada';\nconst carrera = datosSolicitud.Carrera;\nconst motivoRechazo = $('Function - Procesar Decisión').item.json.motivoRechazo;\n\nconst html = `\n  <html>\n    <head><style>body { font-family: sans-serif; padding: 20px; }</style></head>\n    <body>\n      <h1>ACTA DE RESOLUCIÓN DE CONVALIDACIÓN</h1>\n      <p><strong>Fecha de Resolución:</strong> ${new Date().toLocaleDateString()}</p>\n      <p><strong>Nombre del Estudiante:</strong> ${nombreEstudiante}</p>\n      <p><strong>RUT:</strong> ${rutEstudiante}</p>\n      <hr>\n      <p>Por medio de la presente, se notifica que la resolución de su solicitud de convalidación para la asignatura <strong>${asignatura}</strong> es: <strong>RECHAZADA</strong>.</p>\n      <p><strong>Motivo:</strong> ${motivoRechazo}</p>\n      <br><br>\n      <p>Atentamente,<br>Director de Carrera de ${carrera}</p>\n    </body>\n  </html>\n`;\n\n// Pasamos el HTML como texto al siguiente nodo\nreturn { json: { ...$json, actaHtml: html } };"
+      },
+      "name": "Crear HTML del Acta1",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        240,
+        528
+      ],
+      "id": "959de64b-aca2-47d4-94cb-d3e410e3adeb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2018.api2pdf.com/chrome/html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "={{ $('Crear HTML del Acta').item.json.actaHtml }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        384
+      ],
+      "id": "93049a3a-acd3-400e-97ce-ac9ac4d8b4fa",
+      "name": "Convertir a PDF Aprobada",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GQAyvCsD65tyo3sa",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Convertir a PDF Aprobada').item.json.pdf }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        384
+      ],
+      "id": "9c1db0e9-e95f-422f-93f2-fb117b6f57b0",
+      "name": "Descargar PDF Aprobado"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Convertir a PDF Rechazado').item.json.pdf }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        528
+      ],
+      "id": "90524ef2-2ad7-45eb-bf80-0672fb06f7b3",
+      "name": "Descargar PDF Rechazado"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2018.api2pdf.com/chrome/html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "={{ $('Crear HTML del Acta1').item.json.actaHtml }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        528
+      ],
+      "id": "d5285d6f-43c6-474b-8f3c-fa1acc9c0bfe",
+      "name": "Convertir a PDF Rechazado",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GQAyvCsD65tyo3sa",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Recepción": {
+      "main": [
+        [
+          {
+            "node": "Function - Validar Campos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function - Validar Campos": {
+      "main": [
+        [
+          {
+            "node": "IF - Validación OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Validación OK?": {
+      "main": [
+        [
+          {
+            "node": "DB - Registro en Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB - Registro en Sheets": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Storage - Guardar en Drive": {
+      "main": [
+        [
+          {
+            "node": "Email - Notificación al Director",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Decisión": {
+      "main": [
+        [
+          {
+            "node": "Function - Procesar Decisión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function - Procesar Decisión": {
+      "main": [
+        [
+          {
+            "node": "DB - Actualizar Estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear HTML del Acta": {
+      "main": [
+        [
+          {
+            "node": "Convertir a PDF Aprobada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Storage - Guardar en Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Notificación al Director": {
+      "main": [
+        []
+      ]
+    },
+    "Switch - Decision": {
+      "main": [
+        [
+          {
+            "node": "Crear HTML del Acta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear HTML del Acta1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB - Actualizar Estado": {
+      "main": [
+        [
+          {
+            "node": "DB - Obtener Fila Actualizada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB - Obtener Fila Actualizada": {
+      "main": [
+        [
+          {
+            "node": "Switch - Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Estudiante Aceptada": {
+      "main": [
+        []
+      ]
+    },
+    "Crear HTML del Acta1": {
+      "main": [
+        [
+          {
+            "node": "Convertir a PDF Rechazado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir a PDF Aprobada": {
+      "main": [
+        [
+          {
+            "node": "Descargar PDF Aprobado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar PDF Rechazado": {
+      "main": [
+        [
+          {
+            "node": "Email - Estudiante Rechazada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar PDF Aprobado": {
+      "main": [
+        [
+          {
+            "node": "Email - Estudiante Aceptada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir a PDF Rechazado": {
+      "main": [
+        [
+          {
+            "node": "Descargar PDF Rechazado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "186dc722-3b55-41c0-9cb0-8909c647b405",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eaf8e78c9cece09e497a87ec37717c4c3692a4473235a81d20fe39aaa9b75c5d"
+  },
+  "id": "SISTq6E093DFxlqF",
+  "tags": []
+}

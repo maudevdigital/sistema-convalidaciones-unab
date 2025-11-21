@@ -1,0 +1,105 @@
+Informe de Avance y Actividades: Sprint 2
+
+Período: 06 de Noviembre 2025 – 20 de Noviembre 2025
+Responsable: Lucas Maulén
+Total de Horas en el período: 64.1 Horas
+Total de Horas: 172.9 Horas
+Porcentaje de cumplimiento: 80.0%
+
+1. Detalle Diario de Tareas y Tiempos
+A continuación, se desglosan las actividades realizadas día a día, con el total de horas dedicadas por jornada.
+
+●	Miércoles, 06 de Noviembre | Total: 1.3 Horas
+○	Reunión elección HU Sprint 2. Reunión con el equipo para seleccionar y asignar las Historias de Usuario que se desarrollarían durante el Sprint 2.
+
+●	Jueves, 07 de Noviembre | Total: 4.0 Horas
+○	Diseño de flujo en n8n.json. Creación del diseño inicial del flujo de trabajo para la HU-005 en formato JSON, definiendo la estructura de nodos y conexiones necesarias.
+
+●	Viernes, 08 de Noviembre | Total: 8.0 Horas
+○	Configuración credenciales y pruebas. Configuración de las credenciales necesarias para Google Sheets, Gmail SMTP y otras integraciones requeridas para el funcionamiento del workflow.
+○	Reunión avance HU Sprint 2. Sesión de coordinación con el equipo para revisar el progreso de las historias de usuario del Sprint 2.
+○	Implementación de validaciones de entrada (Function-ValidarEntrada). Desarrollo del nodo de función que valida los datos de entrada del formulario antes de procesar la solicitud.
+○	Configuración SMTP Gmail para envío de emails. Configuración completa del servicio SMTP de Gmail con las credenciales y parámetros necesarios para el envío automatizado de notificaciones.
+
+●	Sábado, 09 de Noviembre | Total: 8.0 Horas
+○	Reunión avances y análisis de problemas. Sesión extendida para analizar los avances del equipo y discutir los problemas técnicos encontrados durante el desarrollo.
+○	Desarrollo de lógica de selección de templates (switch 4 casos). Implementación del nodo Switch que dirige el flujo hacia uno de los 4 templates de correo según el tipo de error detectado.
+○	Configuración nodo Email-Corrección con templates HTML. Configuración de los nodos de email con templates HTML personalizados para cada tipo de error (RUT, Email, PDF, Tamaño).
+
+●	Domingo, 10 de Noviembre | Total: 5.6 Horas
+○	Pruebas unitarias de 4 templates. Testing exhaustivo de cada uno de los 4 templates de correo para verificar que se muestren correctamente y contengan la información adecuada.
+○	Pruebas de validación de errores. Ejecución de pruebas con diferentes tipos de errores para verificar que el sistema los detecte y notifique correctamente.
+
+●	Lunes, 11 de Noviembre | Total: 9.0 Horas
+○	Documentación técnica: HU-05_FICHA_TECNICA.md. Elaboración de la ficha técnica completa de la HU-005, incluyendo arquitectura, tecnologías utilizadas, y especificaciones técnicas del workflow.
+○	Documentación de 20 casos de prueba: HU-05_CASOS_PRUEBA.md. Creación de 20 casos de prueba detallados que cubren escenarios positivos, negativos y casos extremos de la HU-005.
+○	Documentación de resultados de pruebas: HU-05_RESULTADOS_PRUEBAS.md. Documentación sistemática de los resultados obtenidos en cada caso de prueba ejecutado, incluyendo evidencias y conclusiones.
+
+●	Martes, 12 de Noviembre | Total: 10.0 Horas
+○	Reunión de avance y entregable Sprint 2. Coordinación con el equipo sobre los entregables definidos para el Sprint 2 y organización de las tareas pendientes.
+○	Desarrollo de script automatizado de pruebas (HU-05_test.ps1). Creación de un script en PowerShell que automatiza la ejecución de las pruebas del workflow HU-005.
+○	Captura de 9 evidencias visuales (screenshots pruebas y emails). Documentación visual del funcionamiento del sistema mediante capturas de pantalla de las pruebas y correos generados.
+○	Exportación de 30 tareas a Taiga. Organización y registro de 30 tareas específicas de la HU-005 en la plataforma Taiga para seguimiento del proyecto.
+
+●	Miércoles, 13 de Noviembre | Total: 3.0 Horas
+○	Reunión preparación Sprint 2. Sesión de preparación para la presentación del Sprint 2, revisión de avances y coordinación de últimos detalles.
+
+●	Jueves, 14 de Noviembre | Total: 0.3 Horas
+○	Daily con profesora. Reunión breve diaria con la profesora guía para reportar avances y resolver consultas.
+
+●	Viernes, 15 de Noviembre | Total: 2.0 Horas
+○	Reunión grupal. Sesión de coordinación general del equipo para verificar el estado de todas las historias de usuario.
+
+●	Domingo, 17 de Noviembre | Total: 9.0 Horas
+○	Desarrollo grupal con developer. Sesión de trabajo en conjunto con otros desarrolladores para integrar y unificar los diferentes workflows.
+○	Reunión grupal. Coordinación del equipo para revisar el progreso y planificar las tareas siguientes.
+
+●	Lunes, 18 de Noviembre | Total: 7.0 Horas
+○	Reunión grupal. Sesión de coordinación y seguimiento de las tareas del Sprint 2.
+○	Desarrollo grupal con developer. Trabajo colaborativo para resolver problemas de integración entre diferentes componentes.
+
+●	Martes, 19 de Noviembre | Total: 11.0 Horas
+○	Unificación de HU para review. Integración de la HU-005 con otras historias de usuario (HU-001, HU-003) en un workflow unificado para presentación.
+○	Configuración credenciales y pruebas para review. Verificación y ajuste de todas las credenciales necesarias, ejecución de pruebas exhaustivas del flujo completo integrado.
+○	Review con Eduardo. Sesión de revisión técnica con Eduardo Navarro, presentando el trabajo desarrollado y recibiendo retroalimentación.
+
+●	Miércoles, 20 de Noviembre | Total: 6.0 Horas
+○	Pruebas finales demo HU-005. Ejecución de las pruebas finales del workflow HU-005 para garantizar su correcto funcionamiento en la demostración.
+○	Finalización de tareas pendientes en Taiga. Actualización y cierre de tareas pendientes en la plataforma Taiga, asegurando que el tablero refleje el estado real del proyecto.
+○	Subida de archivos pendientes al Taiga. Carga de documentación, evidencias y archivos relacionados con la HU-005 en la wiki del proyecto en Taiga.
+
+2. Resumen de Aprendizajes y Resolución de Problemas
+
+Durante este ciclo (Sprint 2), el trabajo se ha centrado en el desarrollo completo de la Historia de Usuario 005 (Notificación de Errores de Validación), desde su diseño inicial hasta su integración con el sistema completo.
+
+Aprendizajes Técnicos y Resolución de Problemas
+
+●	Desarrollo de Workflows en n8n: Se profundizó en el uso de n8n para la creación de flujos de trabajo automatizados, específicamente en la implementación de validaciones múltiples y enrutamiento condicional mediante nodos Switch. El aprendizaje clave fue entender cómo estructurar flujos complejos con múltiples rutas de ejecución basadas en diferentes tipos de errores.
+
+●	Integración de Servicios de Email: Se trabajó extensivamente con SMTP de Gmail para la configuración y envío de correos electrónicos transaccionales. El desafío principal fue crear templates HTML dinámicos que se adapten a diferentes tipos de errores (RUT inválido, Email inválido, PDF inválido, Tamaño excedido) manteniendo consistencia visual y claridad en los mensajes.
+
+●	Validaciones de Datos: Se implementaron funciones de validación robustas en JavaScript para diferentes tipos de datos: RUT chileno (algoritmo módulo 11), formatos de email (regex RFC 5322), validación de archivos PDF (extensión y MIME type), y validación de tamaño de archivos. El aprendizaje crítico fue manejar edge cases y proporcionar mensajes de error específicos y accionables.
+
+●	Testing Exhaustivo: Se realizaron pruebas unitarias y de integración sistemáticas, cubriendo 20 casos de prueba diferentes que incluyen escenarios positivos, negativos y casos extremos. Se desarrolló un script automatizado en PowerShell para facilitar la ejecución repetitiva de pruebas, lo que mejoró significativamente la eficiencia del proceso de QA.
+
+●	Documentación Técnica: Se generó documentación completa y profesional incluyendo ficha técnica (arquitectura, tecnologías, especificaciones), casos de prueba detallados, y resultados documentados con evidencias visuales. Este proceso enseñó la importancia de la trazabilidad y la documentación como parte integral del desarrollo.
+
+Gestión y Metodología Ágil
+
+●	Trabajo Colaborativo: Las sesiones de desarrollo grupal con otros developers (17-18 de noviembre) permitieron la integración exitosa de la HU-005 con otras historias de usuario (HU-001, HU-003), demostrando habilidades de trabajo en equipo y resolución colaborativa de problemas de integración.
+
+●	Gestión de Proyecto en Taiga: Se consolidó el uso de Taiga como herramienta central de gestión, exportando 30 tareas específicas de la HU-005, manteniéndolas actualizadas durante todo el sprint, y asegurando que la documentación estuviera disponible en la wiki del proyecto.
+
+●	Reuniones Efectivas: Se participó en múltiples tipos de reuniones (daily, avances, coordinación, review técnica) que permitieron mantener alineación con el equipo y recibir retroalimentación oportuna tanto del equipo como de la profesora guía y el revisor técnico Eduardo Navarro.
+
+●	Integración y Unificación: El trabajo final de unificación de workflows (19 de noviembre) representó un desafío técnico significativo, integrando múltiples componentes en un sistema cohesivo que cumple con todos los criterios de aceptación definidos.
+
+Logros Específicos de la HU-005
+
+●	Sistema de notificación con 4 templates específicos: Se implementó exitosamente un sistema que detecta 4 tipos diferentes de errores de validación y envía correos electrónicos personalizados para cada caso.
+
+●	Validaciones robustas: Todas las validaciones funcionan correctamente y proporcionan feedback claro y accionable al usuario.
+
+●	Documentación completa: Se generó documentación técnica de nivel profesional que facilita el mantenimiento y evolución futura del sistema.
+
+●	Integración exitosa: La HU-005 se integró correctamente con HU-001 y HU-003, formando un workflow unificado que cubre el proceso completo de solicitud de convalidación académica.

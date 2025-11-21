@@ -1,0 +1,35 @@
+HU	CA	Observaciones PO	Resultado (Aceptado, Aceptado con observaciones Rechazado, Otro)
+HU-001	Dado que he recibido un correo de notificación de una nueva solicitud,  
+Cuando hago clic en la opción "Aceptar",  
+Entonces el estado de la solicitud en Google Sheets debe actualizarse a "Convalidada".		
+HU-001	Dado que he recibido un correo de notificación y he revisado los antecedentes,  
+Cuando hago clic en la opción "Rechazar" (y opcionalmente, indico un motivo),  
+Entonces el estado de la solicitud en Google Sheets debe actualizarse a "No Convalidada".		
+HU-001	Dado que considero que la solicitud requiere una evaluación más profunda,  
+Cuando hago clic en la opción "Revisión Adicional",  
+Entonces el sistema debe notificar al comité evaluador y actualizar el estado de la solicitud a "En Revisión Adicional".		
+HU-003	Dado que mi solicitud de convalidación fue aprobada por el director de carrera,                                                                                                                                             Cuando el proceso de validación finaliza,                                                                                                                                                                                                                       Entonces debo recibir un correo indicando “Solicitud Aceptada", con el acta de resolución en formato PDF adjunta.		
+HU-003	Dado a que mi solicitud fue rechazada,  
+Cuando el proceso de finalización finaliza, 
+Entonces debo recibir un correo indicando “Solicitud Rechazada”, idealmente con el motivo del rechazo, y el acta correspondiente en formato PDF adjunto.		
+HU-004	Dado que un estudiante ha subido un documento,  
+Cuando el agente verifica que el formato del archivo es PDF,  
+Entonces el flujo de trabajo debe proceder con la notificación a la Dirección de Carrera.		
+HU-004	Dado que un estudiante ha subido un documento,  
+Cuando el agente verifica que el formato del archivo no es PDF (ej: .docx, .jpg),  
+Entonces el flujo de trabajo debe activar la notificación de corrección al estudiante.		
+HU-008	Dado que una solicitud ha sido marcada como "Convalidada". 
+Cuando el flujo llega al paso de notificación final. 
+Entonces un documento PDF debe ser generado con los datos del estudiante y el veredicto de "Aceptada".		
+HU-005	Dado que la validación automática de documentos ha fallado,
+Cuando el flujo se desvía por la rama de "error en documento",
+Entonces se debe enviar un correo electrónico al estudiante solicitando la corrección.		
+HU-002	Dado que he recibido un correo de notificación de una nueva solicitud,  
+Cuando hago clic en la opción "Aceptar",  
+Entonces el estado de la solicitud en Google Sheets debe actualizarse a "Convalidada".		
+HU-002	Dado que he recibido un correo de notificación y he revisado los antecedentes,  
+Cuando hago clic en la opción "Rechazar" (y opcionalmente, indico un motivo),  
+Entonces el estado de la solicitud en Google Sheets debe actualizarse a "No Convalidada".		
+HU-002	Dado que considero que la solicitud requiere una evaluación más profunda,  
+Cuando hago clic en la opción "Revisión Adicional",  
+Entonces el sistema debe notificar al comité evaluador y actualizar el estado de la solicitud a "En Revisión Adicional".		

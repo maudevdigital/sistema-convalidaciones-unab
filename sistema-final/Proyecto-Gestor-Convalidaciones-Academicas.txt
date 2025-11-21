@@ -1,0 +1,99 @@
+1.	Proyecto.
+Agente Automatizado para Homologación y Convalidación de Asignaturas.
+
+
+2.	Descripción de la Práctica
+En esta práctica, los estudiantes deberán implementar un flujo automatizado en n8n para  la  gestión  de  homologación  y  convalidación  de  asignaturas. El agente permitirá que un estudiante solicite la convalidación de una asignatura cursada previamente en otra institución (o en programas internos), se verifique la documentación, se realice la validación académica y finalmente se notifique el resultado al solicitante.
+El objetivo es que los estudiantes aprendan a estructurar procesos administrativos con varios niveles de validación utilizando n8n como orquestador.
+
+
+3.	Funcionalidades
+Recepción de Solicitud (Webhook + Formulario):
+•	El flujo inicia con un Webhook conectado a un formulario web donde el estudiante ingresa:
+o	Nombre completo
+o	Rut / ID estudiante
+o	Carrera actual
+o	Asignatura a convalidar
+o	Institución de origen
+o	Documento de respaldo (certificado de notas / programa asignatura en PDF)
+•	La información se guarda automáticamente en Google Sheets o en una base de datos.
+ 
+Verificación Automática de Documentos (Drive/Storage Node):
+•	Los archivos adjuntos se almacenan en Google Drive o un repositorio institucional.
+•	El agente valida que el archivo tenga el formato correcto (PDF).
+•	Si falta documentación → enviar correo automático al estudiante solicitando corrección.
+Notificación a la Dirección de Carrera (Email Node):
+•	Una vez ingresada la solicitud, n8n notifica automáticamente al director de carrera o comisión académica con los datos del estudiante y enlace al documento cargado.
+Flujo de Validación Académica (Wait Node + Respuesta Email):
+•	El director recibe un correo con opciones: “Aceptar” / “Rechazar” / “Revisión Adicional”.
+•	Según la respuesta:
+o	Aceptada → actualizar estado de la solicitud como “Convalidada”.
+o	Rechazada → actualizar estado como “No Convalidada” e indicar motivo.
+o	Revisión adicional → asignar la solicitud a un comité evaluador (se envía un correo con copia del expediente).
+Notificación Final al Estudiante:
+•	Una vez tomada la decisión, el agente envía automáticamente un correo al estudiante indicando el resultado de la solicitud (aceptada, rechazada, en revisión adicional).
+•	Se adjunta un PDF generado automáticamente con el acta de resolución.
+Registro Histórico:
+•	Todas las solicitudes se consolidan en un reporte final (Google Sheets/DB + PDF) con los siguientes campos:
+o	Estudiante
+ 
+o	Asignatura solicitada
+o	Institución de origen
+o	Estado final
+o	Fecha de resolución
+
+
+4.	Objetivos de la Práctica
+Al finalizar esta práctica, los estudiantes deberán:
+•	Diseñar un flujo automatizado de homologación en n8n con múltiples validaciones.
+•	Integrar formularios, almacenamiento en la nube, correo y generación de documentos.
+•	Implementar decisiones condicionales (If / Switch) basadas en respuestas de validación.
+•	Generar reportes históricos y trazabilidad de procesos administrativos.
+
+
+5.	Requisitos Técnicos
+•	Instancia de n8n activa en servidor o Docker.
+•	Acceso a:
+o	Google Sheets o Base de Datos.
+o	Google Drive / OneDrive para almacenamiento de documentos.
+o	Correo institucional para notificaciones (SMTP/IMAP).
+•	Plugin o integración de generación de PDFs desde n8n (ej. PDF Generator Node).
+ 
+6.	Entregables
+•	Flujo completo en n8n (.json).
+•	Capturas del flujo y explicación de cada nodo.
+•	Ejemplo de:
+o	Solicitud aceptada
+o	Solicitud rechazada
+o	Solicitud en revisión adicional
+•	Acceso al reporte final consolidado de solicitudes.
+•	Informe explicativo con:
+o	Descripción del flujo
+o	Capturas de pantalla de cada etapa
+o	Resultados obtenidos en la prueba
+7.	Capacitación Inicial.
+Antes de la práctica, los estudiantes asistirán a un taller sobre Automatización de procesos académicos con n8n.
+Detalles del taller:
+•	Fecha: martes 9 de septiembre – 19:00 hrs.
+•	Modalidad: Virtual (Zoom).
+•	Duración: 90 minutos.
+Agenda de la Capacitación.
+El curso se estructurará en torno a los siguientes temas, combinando teoría y práctica:
+•	Fundamentos e Instalación.
+•	Introducción a n8n y sus capacidades.
+•	Opciones de instalación y configuración inicial (Cloud, auto hospedado).
+•	Componentes Esenciales (Nodos).
+ 
+•	Triggers: Cómo iniciar un flujo de trabajo (ej. en base a un horario, webhook, evento en una app).
+•	Nodos Principales: Revisión de los nodos más comunes y sus utilidades.
+•	Templates: Cómo usar y adaptar flujos pre-construidos para acelerar el desarrollo.
+•	Construcción y Lógica de Flujos.
+•	Ejemplos Prácticos: Creación de flujos de trabajo paso a paso para resolver problemas comunes.
+•	Vinculación de Datos: Cómo conectar información entre nodos, incluyendo el uso del nodo "Código" (Code) para manipulaciones personalizadas.
+•	Pruebas y Depuración. o Casos de Prueba: Estrategias para verificar el correcto funcionamiento de un flujo.
+•	Depuración de Ejecuciones: Identificación y solución de errores comunes.
+Reuniones de Seguimiento:
+•	Quincenalmente se revisará:
+o	Flujo implementado
+o	Corrección de errores
+o	Calidad de los reportes generados

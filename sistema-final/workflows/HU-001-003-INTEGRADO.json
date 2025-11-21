@@ -1,0 +1,776 @@
+{
+  "name": "Sistema Convalidaciones UNAB - Completo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitud-convalidacion",
+        "responseMode": "lastNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {"name": "Content-Type", "value": "application/json"}
+            ]
+          }
+        }
+      },
+      "name": "Webhook - Recepción Solicitud",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 400],
+      "id": "webhook-recepcion",
+      "webhookId": "solicitud-convalidacion-main"
+    },
+    {
+      "parameters": {
+        "functionCode": "const requiredFields = ['nombre', 'rut', 'carrera', 'asignatura', 'institucionOrigen'];\nconst errors = [];\nconst data = $input.item.json.body || $input.item.json;\n\nfor (const field of requiredFields) {\n  if (!data[field] || data[field].toString().trim() === '') {\n    errors.push(`Campo requerido: ${field}`);\n  }\n}\n\nif (!data.file && !data.documentos) {\n  errors.push('Campo requerido: archivo PDF');\n}\n\nif (errors.length > 0) {\n  return {\n    json: {\n      success: false,\n      errors: errors,\n      message: 'Faltan campos obligatorios',\n      code: 400\n    }\n  };\n}\n\nconst result = Object.assign({}, data, {\n  success: true,\n  documentosCompletos: true,\n  fechaSolicitud: new Date().toISOString(),\n  id: 'SOL-' + data.rut.replace(/[^0-9]/g, '') + '-' + Date.now(),\n  estado: 'Pendiente',\n  fileName: data.file ? data.file.filename : data.documentos,\n  fileData: data.file ? data.file.data : null,\n  fileMimeType: data.file ? data.file.mimeType : 'application/pdf',\n  directorEmail: data.directorEmail || 'maudevchile@gmail.com'\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Validar Campos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 400],
+      "id": "validar-campos"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nfunction validarRUT(rut) {\n  if (!rut) return false;\n  rut = rut.toString().replace(/\\./g, '').replace(/-/g, '').toUpperCase();\n  if (!/^[0-9]{7,8}[0-9K]$/.test(rut)) return false;\n  \n  const cuerpo = rut.slice(0, -1);\n  const dv = rut.slice(-1);\n  let suma = 0;\n  let multiplicador = 2;\n  \n  for (let i = cuerpo.length - 1; i >= 0; i--) {\n    suma += parseInt(cuerpo[i]) * multiplicador;\n    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;\n  }\n  \n  const dvEsperado = 11 - (suma % 11);\n  const dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();\n  return dv === dvCalculado;\n}\n\nif (!data.success) return { json: data };\n\nconst rutValido = validarRUT(data.rut);\nif (!rutValido) {\n  return {\n    json: {\n      success: false,\n      errors: ['RUT inválido: ' + data.rut],\n      message: 'El RUT proporcionado no es válido',\n      code: 400,\n      detalles: 'Formato esperado: 12.345.678-9'\n    }\n  };\n}\n\nreturn { json: data };"
+      },
+      "name": "Function - Validar RUT",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 400],
+      "id": "validar-rut"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nfunction validarEmail(email) {\n  if (!email || email.trim() === '') return true;\n  const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n  if (!emailRegex.test(email)) return false;\n  if (email.length > 254) return false;\n  return true;\n}\n\nif (!data.success) return { json: data };\n\nconst emailValido = validarEmail(data.email);\nconst directorEmailValido = validarEmail(data.directorEmail);\n\nif (!emailValido) {\n  return {\n    json: {\n      success: false,\n      errors: ['Email inválido: ' + data.email],\n      message: 'El email proporcionado no es válido',\n      code: 400\n    }\n  };\n}\n\nif (!directorEmailValido) {\n  return {\n    json: {\n      success: false,\n      errors: ['Email del director inválido: ' + data.directorEmail],\n      message: 'El email del director es inválido',\n      code: 400\n    }\n  };\n}\n\nreturn { json: data };"
+      },
+      "name": "Function - Validar Emails",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 400],
+      "id": "validar-emails"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{"value1": "={{$json.success}}", "value2": true}]
+        }
+      },
+      "name": "IF - Validación OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 400],
+      "id": "if-validacion-ok"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\nconst fileName = data.fileName || data.documentos || '';\nlet pdfsOk = true;\nlet badFiles = [];\n\nif (typeof fileName === 'string') {\n  if (!fileName.toLowerCase().endsWith('.pdf')) {\n    pdfsOk = false;\n    badFiles.push(fileName);\n  }\n}\n\nif (data.fileMimeType && data.fileMimeType !== 'application/pdf') {\n  pdfsOk = false;\n  badFiles.push(`Tipo MIME incorrecto: ${data.fileMimeType}`);\n}\n\nconst result = Object.assign({}, data, {\n  pdfsOk: pdfsOk,\n  badFiles: badFiles,\n  validacionPDF: pdfsOk ? 'Documentos válidos' : 'Documentos inválidos'\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Validar PDF",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "id": "validar-pdf"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\nconst MAX_SIZE_MB = 10;\nconst MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;\n\nlet sizeOk = true;\nlet sizeError = '';\n\nif (data.fileData) {\n  const base64Length = data.fileData.length;\n  const fileSizeBytes = (base64Length * 3) / 4;\n  \n  if (fileSizeBytes > MAX_SIZE_BYTES) {\n    sizeOk = false;\n    sizeError = `Archivo muy grande: ${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB. Máximo: ${MAX_SIZE_MB}MB`;\n  }\n  \n  data.fileSize = fileSizeBytes;\n  data.fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);\n}\n\nconst result = Object.assign({}, data, {\n  sizeOk: sizeOk,\n  sizeError: sizeError,\n  validacionTamaño: sizeOk ? 'Tamaño válido' : 'Archivo muy grande'\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Validar Tamaño",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "id": "validar-tamano"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{"value1": "={{$json.pdfsOk && $json.sizeOk}}", "value2": true}]
+        }
+      },
+      "name": "IF - PDF Válido",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "id": "if-pdf-valido"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const base64Data = data.fileData || (data.file ? data.file.data : null);\n  const fileName = data.fileName || (data.file ? data.file.filename : 'documento.pdf');\n  const mimeType = data.fileMimeType || 'application/pdf';\n  \n  if (!base64Data) {\n    throw new Error('No se encontraron datos del archivo');\n  }\n  \n  const binaryBuffer = Buffer.from(base64Data, 'base64');\n  \n  results.push({\n    json: data,\n    binary: {\n      data: {\n        data: binaryBuffer.toString('base64'),\n        mimeType: mimeType,\n        fileName: fileName,\n        fileExtension: 'pdf'\n      }\n    }\n  });\n}\n\nreturn results;"
+      },
+      "name": "Code - Convertir a Binario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 200],
+      "id": "convertir-binario"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "folderId": {"__rl": true, "value": "", "mode": "list"},
+        "name": "={{$json.id}}_{{$json.fileName}}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "name": "Drive - Subir PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2220, 200],
+      "id": "drive-subir-pdf",
+      "credentials": {
+        "googleDriveOAuth2Api": {"id": "PENDIENTE", "name": "Google Drive account"}
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const driveData = $input.item.json;\nconst originalData = $('IF - PDF Válido').item.json;\n\nconst fileId = driveData.id;\nconst fileName = driveData.name;\nconst webViewLink = `https://drive.google.com/file/d/${fileId}/view`;\nconst webContentLink = `https://drive.google.com/uc?id=${fileId}&export=download`;\n\nconst result = Object.assign({}, originalData, {\n  driveFileId: fileId,\n  driveFileName: fileName,\n  linkDrive: webViewLink,\n  linkDirecto: webContentLink\n});\n\nreturn { json: result };"
+      },
+      "name": "Function - Preparar Link Drive",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2440, 200],
+      "id": "preparar-link-drive"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nreturn {\n  json: {\n    id: data.id,\n    fecha: data.fechaSolicitud,\n    estudiante: data.nombre,\n    rut: data.rut,\n    carrera: data.carrera,\n    asignatura: data.asignatura,\n    institucionOrigen: data.institucionOrigen,\n    documentos: data.fileName,\n    linkDrive: data.linkDrive || 'Pendiente',\n    driveFileId: data.driveFileId || '',\n    tamanoMB: data.fileSizeMB || '',\n    email: data.email || '',\n    directorEmail: data.directorEmail,\n    estado: 'Pendiente'\n  }\n};"
+      },
+      "name": "Function - Preparar Datos Solicitud",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2660, 200],
+      "id": "preparar-datos-solicitud"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1FWnWVXKy8mKIbO2JloHav9y7rYJYpVIqM1qcVhtg0yY",
+          "mode": "list",
+          "cachedResultName": "Sistema Convalidaciones Académicas"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 392534325,
+          "mode": "list",
+          "cachedResultName": "Solicitudes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$json.id}}",
+            "fecha": "={{$json.fecha}}",
+            "estudiante": "={{$json.estudiante}}",
+            "rut": "={{$json.rut}}",
+            "carrera": "={{$json.carrera}}",
+            "asignatura": "={{$json.asignatura}}",
+            "institucionOrigen": "={{$json.institucionOrigen}}",
+            "documentos": "={{$json.documentos}}",
+            "linkDrive": "={{$json.linkDrive}}",
+            "driveFileId": "={{$json.driveFileId}}",
+            "tamanoMB": "={{$json.tamanoMB}}",
+            "email": "={{$json.email}}",
+            "directorEmail": "={{$json.directorEmail}}",
+            "estado": "={{$json.estado}}"
+          }
+        },
+        "options": {}
+      },
+      "name": "DB - Registro Solicitud",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2880, 200],
+      "id": "db-registro-solicitud",
+      "credentials": {
+        "googleSheetsOAuth2Api": {"id": "ZM6AB0udQM5h68On", "name": "Google Sheets account"}
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    id: data.id,\n    evento: 'Solicitud Recibida',\n    estudiante: data.nombre,\n    estado: 'Pendiente',\n    detalles: `Recepción exitosa - Asignatura: ${data.asignatura} - Institución: ${data.institucionOrigen}`\n  }\n};"
+      },
+      "name": "Function - Log Recepción",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2000, 300],
+      "id": "preparar-log-recepcion"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1FWnWVXKy8mKIbO2JloHav9y7rYJYpVIqM1qcVhtg0yY",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{$json.timestamp}}",
+            "id": "={{$json.id}}",
+            "evento": "={{$json.evento}}",
+            "estudiante": "={{$json.estudiante}}",
+            "estado": "={{$json.estado}}",
+            "detalles": "={{$json.detalles}}"
+          }
+        },
+        "options": {}
+      },
+      "name": "DB - Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2220, 300],
+      "id": "db-log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {"id": "ZM6AB0udQM5h68On", "name": "Google Sheets account"}
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$json.email || 'estudiante@ejemplo.com'}}",
+        "subject": "=Confirmación de Recepción - Solicitud {{$json.id}}",
+        "text": "=Estimado/a {{$json.nombre}},\n\nHemos recibido correctamente su solicitud de convalidación:\n\nDATOS DE LA SOLICITUD:\n- ID: {{$json.id}}\n- Fecha: {{$json.fechaSolicitud}}\n- Asignatura: {{$json.asignatura}}\n- Institución: {{$json.institucionOrigen}}\n- Estado: Pendiente de revisión\n\nPRÓXIMOS PASOS:\n1. El Director de Carrera revisará su solicitud\n2. Recibirá un email cuando haya una decisión\n3. El proceso puede tomar entre 5-10 días hábiles\n\nSaludos cordiales,\nSistema de Convalidaciones UNAB",
+        "options": {}
+      },
+      "name": "Email - Confirmación Estudiante",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 400],
+      "id": "email-confirmacion-estudiante",
+      "credentials": {
+        "smtp": {"id": "5PwfuVROJgdj9gpi", "name": "SMTP account"}
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "maudevchile@gmail.com",
+        "subject": "=Nueva Solicitud de Convalidación - {{$json.nombre}}",
+        "emailFormat": "html",
+        "html": "=<p>Estimado/a Director/a,</p>\n<p>Se ha recibido una nueva solicitud de convalidación:</p>\n<h3>Datos del Estudiante:</h3>\n<ul>\n  <li><strong>Nombre:</strong> {{$json.nombre}}</li>\n  <li><strong>RUT:</strong> {{$json.rut}}</li>\n  <li><strong>Carrera:</strong> {{$json.carrera}}</li>\n  <li><strong>Asignatura:</strong> {{$json.asignatura}}</li>\n  <li><strong>Institución de Origen:</strong> {{$json.institucionOrigen}}</li>\n  <li><strong>ID Solicitud:</strong> {{$json.id}}</li>\n</ul>\n<h3>Documentación:</h3>\n<p>El documento del estudiante está adjunto a este correo.</p>\n<p><a href=\"{{$json.linkDrive}}\">Ver también en Google Drive</a></p>\n<hr>\n<h3>Por favor, tome una decisión:</h3>\n<p><a href=\"http://localhost:5678/webhook/decision-director?decision=Convalidada&solicitudId={{$json.id}}\" style=\"padding: 10px 20px; text-decoration: none; border: 2px solid #000; border-radius: 5px;\">APROBAR SOLICITUD</a></p>\n<br>\n<p><a href=\"http://localhost:5678/webhook/decision-director?decision=En%20Revisión%20Adicional&motivo=Requiere%20revision%20adicional&solicitudId={{$json.id}}\" style=\"padding: 10px 20px; text-decoration: none; border: 2px solid #000; border-radius: 5px;\">SOLICITAR REVISIÓN ADICIONAL</a></p>\n<br>\n<p><strong>Opciones de Rechazo:</strong></p>\n<ul>\n  <li><a href=\"http://localhost:5678/webhook/decision-director?decision=No%20Convalidada&motivo=Documentacion%20Incompleta&solicitudId={{$json.id}}\">Rechazar - Documentación Incompleta</a></li>\n  <li><a href=\"http://localhost:5678/webhook/decision-director?decision=No%20Convalidada&motivo=No%20Cumple%20Requisitos&solicitudId={{$json.id}}\">Rechazar - No Cumple Requisitos</a></li>\n  <li><a href=\"http://localhost:5678/webhook/decision-director?decision=No%20Convalidada&motivo=Otro&solicitudId={{$json.id}}\">Rechazar - Otro Motivo</a></li>\n</ul>\n<p>Atentamente,<br>Sistema Automatizado de Convalidaciones</p>",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "name": "Email - Notificación Director",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [3100, 200],
+      "id": "email-notificacion-director",
+      "credentials": {
+        "smtp": {"id": "5PwfuVROJgdj9gpi", "name": "SMTP account"}
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "let dbData = {};\nlet linkData = {};\n\ntry {\n  const dbResults = $('DB - Registro Solicitud').all();\n  if (dbResults && dbResults.length > 0) {\n    dbData = dbResults[0].json || {};\n  }\n} catch (e) {\n}\n\ntry {\n  const linkResults = $('Function - Preparar Datos Solicitud').all();\n  if (linkResults && linkResults.length > 0) {\n    linkData = linkResults[0].json || {};\n  }\n} catch (e) {\n}\n\nconst inputData = $input.item.json;\n\nconst solicitudId = dbData.id || linkData.id || inputData.id || 'ERROR';\n\nreturn {\n  json: {\n    success: true,\n    message: 'Solicitud recibida y procesada correctamente',\n    id: solicitudId,\n    solicitudId: solicitudId,\n    fechaSolicitud: inputData.fechaSolicitud || new Date().toISOString(),\n    estado: 'Pendiente',\n    linkDrive: linkData.linkDrive || inputData.linkDrive || '',\n    proximosPasos: 'Recibirá notificación cuando el director tome una decisión',\n    tiempoEstimado: '5-10 días hábiles',\n    code: 200\n  }\n};"
+      },
+      "name": "Function - Success Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [3320, 300],
+      "id": "success-response"
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$json.email || 'estudiante@ejemplo.com'}}",
+        "subject": "Error en Documentos - Solicitud de Convalidación",
+        "text": "=Estimado/a {{$json.nombre}},\n\nHemos detectado un problema con los documentos adjuntos:\n\nPROBLEMAS:\n- El archivo no es un PDF válido o excede el tamaño permitido\n\nREQUISITOS:\n- Solo archivos PDF\n- Tamaño máximo: 10 MB\n\nPor favor, reenvíe su solicitud con los documentos correctos.\n\nSaludos,\nSistema de Convalidaciones UNAB",
+        "options": {}
+      },
+      "name": "Email - Error PDF",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 500],
+      "id": "email-error-pdf",
+      "credentials": {
+        "smtp": {"id": "5PwfuVROJgdj9gpi", "name": "SMTP account"}
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    id: data.id || 'ERROR-' + Date.now(),\n    evento: 'Error en Documento PDF',\n    estudiante: data.nombre,\n    estado: 'Rechazada - PDF Inválido',\n    detalles: `Problemas: ${data.badFiles ? data.badFiles.join(', ') : 'Formato no PDF'}. ${data.sizeError || ''}`\n  }\n};"
+      },
+      "name": "Function - Log Error PDF",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2220, 500],
+      "id": "log-error-pdf"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nreturn {\n  json: {\n    success: false,\n    message: 'Documento PDF no válido',\n    errors: data.badFiles || ['Archivo no es PDF'],\n    detalles: data.sizeError || 'Solo se aceptan archivos PDF de máximo 10MB',\n    id: data.id,\n    code: 400\n  }\n};"
+      },
+      "name": "Function - Error PDF Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2440, 500],
+      "id": "error-pdf-response"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    id: 'ERROR-' + Date.now(),\n    evento: 'Error de Validación',\n    estudiante: data.nombre || 'Desconocido',\n    estado: 'Rechazada',\n    detalles: `Errores: ${data.errors ? data.errors.join(', ') : 'Error desconocido'}`\n  }\n};"
+      },
+      "name": "Function - Log Error Validación",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 500],
+      "id": "log-error-validacion"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\n\nreturn {\n  json: {\n    success: false,\n    message: data.message || 'Error en la validación',\n    errors: data.errors || ['Error desconocido'],\n    detalles: data.detalles || 'Verifique los campos requeridos',\n    code: data.code || 400\n  }\n};"
+      },
+      "name": "Function - Error Validación Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1560, 500],
+      "id": "error-validacion-response"
+    },
+    {
+      "parameters": {
+        "path": "decision-director",
+        "options": {}
+      },
+      "name": "Webhook - Decisión Director",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 800],
+      "id": "webhook-decision",
+      "webhookId": "decision-director-main"
+    },
+    {
+      "parameters": {
+        "functionCode": "const query = $input.item.json.query || {};\n\nconst decision = (query.decision || '').toLowerCase();\nconst solicitudId = query.solicitudId || null;\nconst motivo = decodeURIComponent(query.motivo || 'No especificado');\n\nreturn {\n  json: {\n    decision: decision,\n    solicitudId: solicitudId,\n    motivoRechazo: motivo,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Function - Procesar Decisión",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 800],
+      "id": "procesar-decision"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1FWnWVXKy8mKIbO2JloHav9y7rYJYpVIqM1qcVhtg0yY",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 392534325,
+          "mode": "list",
+          "cachedResultName": "Solicitudes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$json.solicitudId}}",
+            "estado": "={{$json.decision}}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {}
+      },
+      "name": "DB - Actualizar Estado",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 800],
+      "id": "actualizar-estado",
+      "credentials": {
+        "googleSheetsOAuth2Api": {"id": "ZM6AB0udQM5h68On", "name": "Google Sheets account"}
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1FWnWVXKy8mKIbO2JloHav9y7rYJYpVIqM1qcVhtg0yY",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 392534325,
+          "mode": "list",
+          "cachedResultName": "Solicitudes"
+        },
+        "filtersUI": {
+          "values": [
+            {"lookupColumn": "id", "lookupValue": "={{$('Function - Procesar Decisión').item.json.solicitudId}}"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "DB - Obtener Datos Solicitud",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 800],
+      "id": "obtener-datos-solicitud",
+      "credentials": {
+        "googleSheetsOAuth2Api": {"id": "ZM6AB0udQM5h68On", "name": "Google Sheets account"}
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.estado.toLowerCase().trim() }}",
+                    "rightValue": "convalidada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "condition-aprobada"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-rechazada",
+                    "leftValue": "={{ $json.estado.toLowerCase().trim() }}",
+                    "rightValue": "no convalidada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-revision",
+                    "leftValue": "={{ $json.estado.toLowerCase().trim() }}",
+                    "rightValue": "en revisión adicional",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Switch - Decisión",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [1120, 800],
+      "id": "switch-decision"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\nconst decision = $('Function - Procesar Decisión').item.json;\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Arial, sans-serif; padding: 40px; }\n    h1 { color: #E30613; text-align: center; }\n    .header { text-align: center; margin-bottom: 30px; }\n    .content { margin: 20px 0; }\n    .footer { margin-top: 50px; text-align: center; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>UNIVERSIDAD ANDRÉS BELLO</h1>\n    <h2>ACTA DE RESOLUCIÓN DE CONVALIDACIÓN</h2>\n  </div>\n  <div class=\"content\">\n    <p><strong>Fecha de Resolución:</strong> ${new Date().toLocaleDateString('es-CL')}</p>\n    <p><strong>ID Solicitud:</strong> ${data.id}</p>\n    <p><strong>Nombre del Estudiante:</strong> ${data.estudiante}</p>\n    <p><strong>RUT:</strong> ${data.rut}</p>\n    <p><strong>Carrera:</strong> ${data.carrera}</p>\n    <hr>\n    <h3>RESOLUCIÓN:</h3>\n    <p>Por medio de la presente, se notifica que la solicitud de convalidación para la asignatura <strong>${data.asignatura}</strong> proveniente de <strong>${data.institucionOrigen}</strong> ha sido:</p>\n    <h2 style=\"text-align: center;\">CONVALIDADA</h2>\n    <p>El estudiante podrá continuar con su plan de estudios considerando esta asignatura como convalidada.</p>\n  </div>\n  <div class=\"footer\">\n    <p>_______________________________</p>\n    <p><strong>Dirección de Carrera</strong></p>\n    <p>${data.carrera}</p>\n    <p>Universidad Andrés Bello</p>\n  </div>\n</body>\n</html>\n`;\n\nreturn { json: { ...data, actaHtml: html, decision: 'Convalidada' } };"
+      },
+      "name": "Function - Generar HTML Aprobada",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 700],
+      "id": "generar-html-aprobada"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json;\nconst decision = $('Function - Procesar Decisión').item.json;\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Arial, sans-serif; padding: 40px; }\n    h1 { color: #E30613; text-align: center; }\n    .header { text-align: center; margin-bottom: 30px; }\n    .content { margin: 20px 0; }\n    .footer { margin-top: 50px; text-align: center; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>UNIVERSIDAD ANDRÉS BELLO</h1>\n    <h2>ACTA DE RESOLUCIÓN DE CONVALIDACIÓN</h2>\n  </div>\n  <div class=\"content\">\n    <p><strong>Fecha de Resolución:</strong> ${new Date().toLocaleDateString('es-CL')}</p>\n    <p><strong>ID Solicitud:</strong> ${data.id}</p>\n    <p><strong>Nombre del Estudiante:</strong> ${data.estudiante}</p>\n    <p><strong>RUT:</strong> ${data.rut}</p>\n    <p><strong>Carrera:</strong> ${data.carrera}</p>\n    <hr>\n    <h3>RESOLUCIÓN:</h3>\n    <p>Por medio de la presente, se notifica que la solicitud de convalidación para la asignatura <strong>${data.asignatura}</strong> proveniente de <strong>${data.institucionOrigen}</strong> ha sido:</p>\n    <h2 style=\"text-align: center;\">NO CONVALIDADA</h2>\n    <p><strong>Motivo del Rechazo:</strong></p>\n    <p>${decision.motivoRechazo}</p>\n  </div>\n  <div class=\"footer\">\n    <p>_______________________________</p>\n    <p><strong>Dirección de Carrera</strong></p>\n    <p>${data.carrera}</p>\n    <p>Universidad Andrés Bello</p>\n  </div>\n</body>\n</html>\n`;\n\nreturn { json: { ...data, actaHtml: html, decision: 'No Convalidada', motivoRechazo: decision.motivoRechazo } };"
+      },
+      "name": "Function - Generar HTML Rechazada",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 900],
+      "id": "generar-html-rechazada"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2018.api2pdf.com/chrome/html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "html", "value": "={{$json.actaHtml}}"}
+          ]
+        },
+        "options": {
+          "response": {"response": {"responseFormat": "json"}}
+        }
+      },
+      "name": "API - Convertir HTML a PDF Aprobada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 700],
+      "id": "convertir-pdf-aprobada",
+      "credentials": {
+        "httpHeaderAuth": {"id": "GJpgmVVLmwUl8RYi", "name": "API2PDF Auth"}
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2018.api2pdf.com/chrome/html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "html", "value": "={{$json.actaHtml}}"}
+          ]
+        },
+        "options": {
+          "response": {"response": {"responseFormat": "json"}}
+        }
+      },
+      "name": "API - Convertir HTML a PDF Rechazada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 900],
+      "id": "convertir-pdf-rechazada",
+      "credentials": {
+        "httpHeaderAuth": {"id": "GJpgmVVLmwUl8RYi", "name": "API2PDF Auth"}
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{$json.pdf}}",
+        "options": {
+          "response": {"response": {"responseFormat": "file"}}
+        }
+      },
+      "name": "HTTP - Descargar PDF Aprobada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 700],
+      "id": "descargar-pdf-aprobada"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.pdf}}",
+        "options": {
+          "response": {"response": {"responseFormat": "file"}}
+        }
+      },
+      "name": "HTTP - Descargar PDF Rechazada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 900],
+      "id": "descargar-pdf-rechazada"
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$('DB - Obtener Datos Solicitud').item.json.email}}",
+        "subject": "=Solicitud Convalidada - {{$('DB - Obtener Datos Solicitud').item.json.id}}",
+        "emailFormat": "html",
+        "html": "=<p>Estimado/a {{$('DB - Obtener Datos Solicitud').item.json.estudiante}},</p>\n<p>Felicitaciones.</p>\n<p>Nos complace informarte que tu solicitud de convalidación ha sido <strong>CONVALIDADA</strong>.</p>\n<h3>Detalles:</h3>\n<ul>\n  <li><strong>Asignatura:</strong> {{$('DB - Obtener Datos Solicitud').item.json.asignatura}}</li>\n  <li><strong>Institución de Origen:</strong> {{$('DB - Obtener Datos Solicitud').item.json.institucionOrigen}}</li>\n</ul>\n<p>Se adjunta el acta de resolución oficial.</p>\n<p>Atentamente,<br>Administración Académica<br>Universidad Andrés Bello</p>",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "name": "Email - Notificación Aprobada",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 700],
+      "id": "email-aprobada",
+      "credentials": {
+        "smtp": {"id": "5PwfuVROJgdj9gpi", "name": "SMTP account"}
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$('DB - Obtener Datos Solicitud').item.json.email}}",
+        "subject": "=Solicitud No Convalidada - {{$('DB - Obtener Datos Solicitud').item.json.id}}",
+        "emailFormat": "html",
+        "html": "=<p>Estimado/a {{$('DB - Obtener Datos Solicitud').item.json.estudiante}},</p>\n<p>Lamentamos informarte que tu solicitud de convalidación ha sido <strong>NO CONVALIDADA</strong>.</p>\n<h3>Detalles:</h3>\n<ul>\n  <li><strong>Asignatura:</strong> {{$('DB - Obtener Datos Solicitud').item.json.asignatura}}</li>\n  <li><strong>Motivo:</strong> {{$('Function - Procesar Decisión').item.json.motivoRechazo}}</li>\n</ul>\n<p>Se adjunta el acta de resolución con los detalles.</p>\n<p>Para más información, puedes contactar a la Dirección de Carrera.</p>\n<p>Atentamente,<br>Administración Académica<br>Universidad Andrés Bello</p>",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "name": "Email - Notificación Rechazada",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 900],
+      "id": "email-rechazada",
+      "credentials": {
+        "smtp": {"id": "5PwfuVROJgdj9gpi", "name": "SMTP account"}
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "maudevchile@gmail.com",
+        "toEmail": "={{$('DB - Obtener Datos Solicitud').item.json.email}}",
+        "subject": "=Revisión Adicional - Convalidación {{$('DB - Obtener Datos Solicitud').item.json.id}}",
+        "emailFormat": "html",
+        "html": "=<p>Estimado/a {{$('DB - Obtener Datos Solicitud').item.json.estudiante}},</p>\n<p>Le informamos que su solicitud de convalidación requiere <strong>EN REVISIÓN ADICIONAL</strong>.</p>\n<h3>Detalles:</h3>\n<ul>\n  <li><strong>Asignatura:</strong> {{$('DB - Obtener Datos Solicitud').item.json.asignatura}}</li>\n  <li><strong>Institución de Origen:</strong> {{$('DB - Obtener Datos Solicitud').item.json.institucionOrigen}}</li>\n  <li><strong>Motivo:</strong> {{$('Function - Procesar Decisión').item.json.motivoRechazo}}</li>\n</ul>\n<p>El Director de Carrera se pondrá en contacto con usted para solicitar información o documentación adicional.</p>\n<p>Por favor, manténgase atento a futuras comunicaciones.</p>\n<p>Atentamente,<br>Administración Académica<br>Universidad Andrés Bello</p>",
+        "options": {}
+      },
+      "name": "Email - Notificación Revisión Adicional",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 1100],
+      "id": "email-revision-adicional",
+      "credentials": {
+        "smtp": {"id": "5PwfuVROJgdj9gpi", "name": "SMTP account"}
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $('DB - Obtener Datos Solicitud').item.json;\nconst decision = $('Function - Procesar Decisión').item.json;\n\nreturn {\n  json: {\n    timestamp: decision.timestamp,\n    id: data.id,\n    evento: 'Decisión Tomada',\n    estudiante: data.estudiante,\n    estado: decision.decision,\n    detalles: `Decisión: ${decision.decision.toUpperCase()}. Motivo: ${decision.motivoRechazo}`\n  }\n};"
+      },
+      "name": "Function - Log Decisión",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2220, 800],
+      "id": "log-decision"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=<html>\n<head><title>Decisión Registrada</title></head>\n<body style=\"font-family: Arial; text-align: center; padding: 50px;\">\n  <h1>Decisión Registrada Correctamente</h1>\n  <p>La solicitud <strong>{{$('Function - Procesar Decisión').item.json.solicitudId}}</strong> ha sido <strong>{{$('Function - Procesar Decisión').item.json.decision}}</strong>.</p>\n  <p>El estudiante recibirá un email con el acta de resolución.</p>\n  <hr>\n  <p><a href=\"http://localhost:5678\">Volver a n8n</a></p>\n</body>\n</html>",
+        "options": {}
+      },
+      "name": "Respond - Confirmación Decisión",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2440, 800],
+      "id": "respond-decision"
+    }
+  ],
+  "connections": {
+    "Webhook - Recepción Solicitud": {"main": [[{"node": "Function - Validar Campos"}]]},
+    "Function - Validar Campos": {"main": [[{"node": "Function - Validar RUT"}]]},
+    "Function - Validar RUT": {"main": [[{"node": "Function - Validar Emails"}]]},
+    "Function - Validar Emails": {"main": [[{"node": "IF - Validación OK"}]]},
+    "IF - Validación OK": {
+      "main": [
+        [{"node": "Function - Validar PDF"}],
+        [{"node": "Function - Log Error Validación"}]
+      ]
+    },
+    "Function - Validar PDF": {"main": [[{"node": "Function - Validar Tamaño"}]]},
+    "Function - Validar Tamaño": {"main": [[{"node": "IF - PDF Válido"}]]},
+    "IF - PDF Válido": {
+      "main": [
+        [
+          {"node": "Code - Convertir a Binario"},
+          {"node": "Function - Log Recepción"},
+          {"node": "Email - Confirmación Estudiante"}
+        ],
+        [{"node": "Email - Error PDF"}]
+      ]
+    },
+    "Code - Convertir a Binario": {"main": [[{"node": "Drive - Subir PDF"}, {"node": "Email - Notificación Director"}]]},
+    "Drive - Subir PDF": {"main": [[{"node": "Function - Preparar Link Drive"}]]},
+    "Function - Preparar Link Drive": {"main": [[{"node": "Function - Preparar Datos Solicitud"}]]},
+    "Function - Preparar Datos Solicitud": {"main": [[{"node": "DB - Registro Solicitud"}]]},
+    "DB - Registro Solicitud": {"main": [[]]},
+    "Function - Log Recepción": {"main": [[{"node": "DB - Log"}]]},
+    "DB - Log": {"main": [[{"node": "Function - Success Response"}]]},
+    "Email - Confirmación Estudiante": {"main": [[{"node": "Function - Success Response"}]]},
+    "Email - Notificación Director": {"main": [[{"node": "Function - Success Response"}]]},
+    "Email - Error PDF": {"main": [[{"node": "Function - Log Error PDF"}]]},
+    "Function - Log Error PDF": {
+      "main": [
+        [
+          {"node": "DB - Log"},
+          {"node": "Function - Error PDF Response"}
+        ]
+      ]
+    },
+    "Function - Log Error Validación": {
+      "main": [
+        [
+          {"node": "DB - Log"},
+          {"node": "Function - Error Validación Response"}
+        ]
+      ]
+    },
+    "Webhook - Decisión Director": {"main": [[{"node": "Function - Procesar Decisión"}]]},
+    "Function - Procesar Decisión": {"main": [[{"node": "DB - Actualizar Estado"}]]},
+    "DB - Actualizar Estado": {"main": [[{"node": "DB - Obtener Datos Solicitud"}]]},
+    "DB - Obtener Datos Solicitud": {"main": [[{"node": "Switch - Decisión"}]]},
+    "Switch - Decisión": {
+      "main": [
+        [{"node": "Function - Generar HTML Aprobada"}],
+        [{"node": "Function - Generar HTML Rechazada"}],
+        [{"node": "Email - Notificación Revisión Adicional"}]
+      ]
+    },
+    "Function - Generar HTML Aprobada": {"main": [[{"node": "API - Convertir HTML a PDF Aprobada"}]]},
+    "Function - Generar HTML Rechazada": {"main": [[{"node": "API - Convertir HTML a PDF Rechazada"}]]},
+    "API - Convertir HTML a PDF Aprobada": {"main": [[{"node": "HTTP - Descargar PDF Aprobada"}]]},
+    "API - Convertir HTML a PDF Rechazada": {"main": [[{"node": "HTTP - Descargar PDF Rechazada"}]]},
+    "HTTP - Descargar PDF Aprobada": {"main": [[{"node": "Email - Notificación Aprobada"}]]},
+    "HTTP - Descargar PDF Rechazada": {"main": [[{"node": "Email - Notificación Rechazada"}]]},
+    "Email - Notificación Aprobada": {"main": [[{"node": "Function - Log Decisión"}]]},
+    "Email - Notificación Rechazada": {"main": [[{"node": "Function - Log Decisión"}]]},
+    "Email - Notificación Revisión Adicional": {"main": [[{"node": "Function - Log Decisión"}]]},
+    "Function - Log Decisión": {
+      "main": [
+        [
+          {"node": "DB - Log"},
+          {"node": "Respond - Confirmación Decisión"}
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "sistema-convalidaciones-unab-completo-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "sistema-convalidaciones-unab"
+  },
+  "tags": [
+    {"name": "HU-001"},
+    {"name": "HU-003"},
+    {"name": "Convalidaciones"},
+    {"name": "UNAB"}
+  ]
+}
